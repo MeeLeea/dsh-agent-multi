@@ -1,0 +1,21 @@
+# Bundle patch applied over the selected DSH profile when this package is
+# installed via `dsh plugin --profile <name> add` (or listed in
+# `dsh.profile.bundles`). The row id is deployment-local; the package name
+# must match package.json.
+#
+# The host half (lib/index.js, AgentMultiController) loads through this insert
+# row. The Web client half (lib/client.js, canvas editor + run kanban) is
+# discovered separately from the `dsh.client` declaration in package.json.
+
+- insert:
+    - id: agent-multi
+      name: 'dsh-agent-multi'
+      # Deployment defaults for this machine: the profile's providers are
+      # yunlan/bingxing, so the code default (deepseek/deepseek-chat) cannot
+      # start a run here. Profile-patch config rows are ignored by composition,
+      # so this bundle row is the override point.
+      config:
+        runRootProvider: bingxing
+        runRootModel: GLM-5.3-Flash
+        maxActive: 8
+        # tokenBudget: <run-wide billed-token fuse, unset by default>

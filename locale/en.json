@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Agent Multi",
+    "description": "Enable the multi-agent workflow canvas, run engine with retry and HITL, and the Web kanban."
+  }
+}

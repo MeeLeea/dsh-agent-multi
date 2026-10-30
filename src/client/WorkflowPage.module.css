@@ -1,0 +1,116 @@
+/* agent-multi workflow list page — visual tokens shared with the host theme. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--dsw-alias-bg-base);
+  color: var(--dsw-alias-label-primary);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.error {
+  margin: 0;
+  padding: 8px 16px;
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-bg-base);
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+  font-size: 13px;
+}
+
+.hint {
+  margin: 0;
+  padding: 0 16px;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 13px;
+}
+
+.empty {
+  margin: 0;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 13px;
+}
+
+.empty .title {
+  font-weight: 600;
+  color: var(--dsw-alias-label-primary);
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0;
+  padding: 12px 16px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 8px;
+  background: var(--dsw-alias-bg-base);
+}
+
+.rowName {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.rowMeta {
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+}
+
+.rowActions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.importBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+}
+
+.importText {
+  resize: vertical;
+  font-family: var(--dsw-alias-font-mono, monospace);
+  font-size: 12px;
+  padding: 8px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 6px;
+  background: var(--dsw-alias-bg-inset, var(--dsw-alias-bg-base));
+  color: var(--dsw-alias-label-primary);
+}
+
+.importKeep {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--dsw-alias-label-secondary);
+}

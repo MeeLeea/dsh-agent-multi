@@ -76,4 +76,3 @@ docs/plan.md        # original design plan
 ```
 
 Run the contract tests with `npm test`.
-# dsh-agent-multi

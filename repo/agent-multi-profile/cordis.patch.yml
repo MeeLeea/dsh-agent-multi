@@ -1,0 +1,11 @@
+# Experimental multi-agent workflow profile layer. Apply after dsh-base so the
+# workflow service, its triggers, and the Web canvas mount together.
+
+- insert:
+    - id: agent-multi
+      name: '@deepseek-ai/dsh-experimental-agent-multi'
+      config:
+        maxActive: 8
+
+    - id: ui-agent-multi
+      name: '@deepseek-ai/dsh-experimental-client-ui-agent-multi'

@@ -1,0 +1,103 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/experimental/agent-multi/README.md
+/:
+  en: 122d9ab29c731bf9
+  zh: a1e8206303186af7
+/deepseek-ai-dsh-experimental-agent-multi:
+  en: c7129a8569c42096
+  zh: 4df00170475b10bd
+/deepseek-ai-dsh-experimental-agent-multi/summary:
+  en: bf2f63a1e34b361c
+  zh: dd65bf2cd56218b2
+/deepseek-ai-dsh-experimental-agent-multi/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-experimental-agent-multi/use-this-package:
+  en: 7acb469242f18510
+  zh: 3b9dcbf8dd7375b6
+/deepseek-ai-dsh-experimental-agent-multi/use-this-package/when-to-choose-it:
+  en: 7f507c44a5f0d57e
+  zh: abdbdcb7d178098d
+/deepseek-ai-dsh-experimental-agent-multi/use-this-package/smallest-working-setup:
+  en: 7c004b433a7aee62
+  zh: cc612b0371834dd1
+/deepseek-ai-dsh-experimental-agent-multi/use-this-package/workflows:
+  en: 9278480bf9061045
+  zh: b8f250cce6578ea5
+/deepseek-ai-dsh-experimental-agent-multi/use-this-package/runs:
+  en: c1e739ded3e9accb
+  zh: 1dd310b45f38a0b5
+/deepseek-ai-dsh-experimental-agent-multi/use-this-package/human-in-the-loop:
+  en: d5062c2f0e317b72
+  zh: c0c4c6df00b986b3
+/deepseek-ai-dsh-experimental-agent-multi/use-this-package/triggers:
+  en: be02b435d7521e8f
+  zh: 1e36382062030a5d
+/deepseek-ai-dsh-experimental-agent-multi/use-this-package/what-success-and-failure-look-like:
+  en: 4b9fd3e8e44f8f05
+  zh: 5ab8ef274ec5ea9f
+/deepseek-ai-dsh-experimental-agent-multi/understand-the-implementation:
+  en: 6a18034f1ccc247a
+  zh: 1d9797aea2377103
+/deepseek-ai-dsh-experimental-agent-multi/understand-the-implementation/design-philosophy:
+  en: c9210e5a785675a3
+  zh: 0887d8bfa911ce67
+/deepseek-ai-dsh-experimental-agent-multi/understand-the-implementation/source-map:
+  en: 96c56f4b456223de
+  zh: 3630c52e1ed121b1
+/deepseek-ai-dsh-experimental-agent-multi/understand-the-implementation/runs-and-journaling:
+  en: 74461d95db3237f8
+  zh: c5b0467c0e6177ce
+/deepseek-ai-dsh-experimental-agent-multi/understand-the-implementation/retry-and-error-classification:
+  en: a9875fbc5feda2f3
+  zh: db581bd11f950de1
+/deepseek-ai-dsh-experimental-agent-multi/understand-the-implementation/token-accounting:
+  en: b843ca5af422ea6e
+  zh: 0c667c9b70b2ded3
+/deepseek-ai-dsh-experimental-agent-multi/understand-the-implementation/triggers:
+  en: 493fabc5d19207de
+  zh: 21e10b9566d81704
+/deepseek-ai-dsh-experimental-agent-multi/further-exploration:
+  en: d665d33179a8b9b1
+  zh: 2299c82315795bd8
+/deepseek-ai-dsh-experimental-agent-multi/model-experience:
+  en: 215e7ba838619b7b
+  zh: a311da3843709f90
+/deepseek-ai-dsh-experimental-agent-multi/model-experience/assembled-node-prompts:
+  en: 4d7426d8c6cfb83d
+  zh: 407642dd758cb0c6
+/deepseek-ai-dsh-experimental-agent-multi/model-experience/assembled-node-prompts/what-the-model-sees:
+  en: a0ce7d468c4482d2
+  zh: 412ab6bfe60ef196
+/deepseek-ai-dsh-experimental-agent-multi/model-experience/assembled-node-prompts/token-effect:
+  en: f8e295aefce0add2
+  zh: 4b5486519213fdc3
+/deepseek-ai-dsh-experimental-agent-multi/model-experience/assembled-node-prompts/kv-cache-effect:
+  en: 0b227c2aa1185c09
+  zh: 5cd8c1e08588601d
+/deepseek-ai-dsh-experimental-agent-multi/model-experience/human-in-the-loop-tool-schema:
+  en: 0b7d142a9d307f7a
+  zh: b71ce82c00ee826e
+/deepseek-ai-dsh-experimental-agent-multi/model-experience/human-in-the-loop-tool-schema/what-the-model-sees:
+  en: 284027fa2360c0f1
+  zh: 545e8e9c1f205fda
+/deepseek-ai-dsh-experimental-agent-multi/model-experience/human-in-the-loop-tool-schema/token-effect:
+  en: b61e4f4997f73245
+  zh: d26fc534b64611a3
+/deepseek-ai-dsh-experimental-agent-multi/model-experience/human-in-the-loop-tool-schema/kv-cache-effect:
+  en: f36be0ec28329292
+  zh: 0ca901921e746424
+/deepseek-ai-dsh-experimental-agent-multi/known-limitations-and-deferred-work:
+  en: 56034c4169ffed18
+  zh: ae6be80bc51c443b
+/deepseek-ai-dsh-experimental-agent-multi/known-limitations-and-deferred-work/dev-note:
+  en: 498e4cf9fe5741a7
+  zh: e60892fd724fcfef
+/deepseek-ai-dsh-experimental-agent-multi/known-limitations-and-deferred-work/dev-note/promotion:
+  en: 3d126e3b1015e4ce
+  zh: 28aad62783330e0b
+/deepseek-ai-dsh-experimental-agent-multi/known-limitations-and-deferred-work/dev-note/future-directions:
+  en: 96600e2c4c7141db
+  zh: 6053b13b39c80a56

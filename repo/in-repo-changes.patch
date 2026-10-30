@@ -1,0 +1,521 @@
+diff --git a/docs/config-catalog.md b/docs/config-catalog.md
+index 17856848d5..51e6b91d2a 100644
+--- a/docs/config-catalog.md
++++ b/docs/config-catalog.md
+@@ -831,6 +831,33 @@ export interface Config {
+ ```
+ <!-- END GENERATED config-catalog:@deepseek-ai/dsh-deepseek-account-platform -->
+ 
++<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-agent-multi -->
++<a id="deepseek-aidsh-experimental-agent-multi"></a>
++
++## `@deepseek-ai/dsh-experimental-agent-multi`
++
++- `inject`: `storageDomain` · `agentLoop` · `sessions` · `subagents` · `userQuestions` · `sessionProjections`
++- `source`: [`packages/experimental/agent-multi/src/index.ts:57`](../packages/experimental/agent-multi/src/index.ts)
++
++```ts config-catalog
++/** Controller configuration. */
++export interface Config {
++  /** Provider for the dormant run-root agent (it never makes model calls). */
++  runRootProvider?: string
++  /** Model for the dormant run-root agent. */
++  runRootModel?: string
++  /** Maximum concurrent node activations per run. */
++  maxActive?: number
++  /**
++   * Default billed-token budget per run (uncached input + cache reads +
++   * cache writes + output). A `startRun` request may override it per run;
++   * both absent means unbudgeted.
++   */
++  tokenBudget?: number
++}
++```
++<!-- END GENERATED config-catalog:@deepseek-ai/dsh-experimental-agent-multi -->
++
+ <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-agent-team -->
+ <a id="deepseek-aidsh-experimental-agent-team"></a>
+ 
+@@ -4651,6 +4678,7 @@ Imported as libraries by other packages; a `cordis.yml` cannot load them.
+ | `@deepseek-ai/dsh-experimental-agent-team-profile` | — | [`packages/experimental/agent-team-profile/src/index.ts`](../packages/experimental/agent-team-profile/src/index.ts) |
+ | `@deepseek-ai/dsh-experimental-badge-skill-bundle` | — | [`packages/experimental/badge-skill-bundle/src/index.ts`](../packages/experimental/badge-skill-bundle/src/index.ts) |
+ | `@deepseek-ai/dsh-experimental-browser-use-runtime` | — | [`packages/experimental/browser-use-runtime/src/index.ts`](../packages/experimental/browser-use-runtime/src/index.ts) |
++| `@deepseek-ai/dsh-experimental-client-ui-agent-multi` | — | [`packages/experimental/client-ui-agent-multi/src/index.ts`](../packages/experimental/client-ui-agent-multi/src/index.ts) |
+ | `@deepseek-ai/dsh-experimental-cot-translation-bundle` | — | [`packages/experimental/cot-translation-bundle/src/index.ts`](../packages/experimental/cot-translation-bundle/src/index.ts) |
+ | `@deepseek-ai/dsh-experimental-inspector-profile` | — | [`packages/experimental/inspector-profile/src/index.ts`](../packages/experimental/inspector-profile/src/index.ts) |
+ | `@deepseek-ai/dsh-experimental-ralph-bundle` | — | [`packages/experimental/ralph-bundle/src/index.ts`](../packages/experimental/ralph-bundle/src/index.ts) |
+diff --git a/docs/config-catalog.zh.md b/docs/config-catalog.zh.md
+index c4ab85cdda..eaa3137f64 100644
+--- a/docs/config-catalog.zh.md
++++ b/docs/config-catalog.zh.md
+@@ -833,6 +833,33 @@ export interface Config {
+ ```
+ <!-- END GENERATED config-catalog:@deepseek-ai/dsh-deepseek-account-platform -->
+ 
++<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-agent-multi -->
++<a id="deepseek-aidsh-experimental-agent-multi"></a>
++
++## `@deepseek-ai/dsh-experimental-agent-multi`
++
++- `inject`: `storageDomain` · `agentLoop` · `sessions` · `subagents` · `userQuestions` · `sessionProjections`
++- `source`: [`packages/experimental/agent-multi/src/index.ts:57`](../packages/experimental/agent-multi/src/index.ts)
++
++```ts config-catalog
++/** Controller configuration. */
++export interface Config {
++  /** Provider for the dormant run-root agent (it never makes model calls). */
++  runRootProvider?: string
++  /** Model for the dormant run-root agent. */
++  runRootModel?: string
++  /** Maximum concurrent node activations per run. */
++  maxActive?: number
++  /**
++   * Default billed-token budget per run (uncached input + cache reads +
++   * cache writes + output). A `startRun` request may override it per run;
++   * both absent means unbudgeted.
++   */
++  tokenBudget?: number
++}
++```
++<!-- END GENERATED config-catalog:@deepseek-ai/dsh-experimental-agent-multi -->
++
+ <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-agent-team -->
+ <a id="deepseek-aidsh-experimental-agent-team"></a>
+ 
+@@ -4653,6 +4680,7 @@ export interface Config {
+ | `@deepseek-ai/dsh-experimental-agent-team-profile` | — | [`packages/experimental/agent-team-profile/src/index.ts`](../packages/experimental/agent-team-profile/src/index.ts) |
+ | `@deepseek-ai/dsh-experimental-badge-skill-bundle` | — | [`packages/experimental/badge-skill-bundle/src/index.ts`](../packages/experimental/badge-skill-bundle/src/index.ts) |
+ | `@deepseek-ai/dsh-experimental-browser-use-runtime` | — | [`packages/experimental/browser-use-runtime/src/index.ts`](../packages/experimental/browser-use-runtime/src/index.ts) |
++| `@deepseek-ai/dsh-experimental-client-ui-agent-multi` | — | [`packages/experimental/client-ui-agent-multi/src/index.ts`](../packages/experimental/client-ui-agent-multi/src/index.ts) |
+ | `@deepseek-ai/dsh-experimental-cot-translation-bundle` | — | [`packages/experimental/cot-translation-bundle/src/index.ts`](../packages/experimental/cot-translation-bundle/src/index.ts) |
+ | `@deepseek-ai/dsh-experimental-inspector-profile` | — | [`packages/experimental/inspector-profile/src/index.ts`](../packages/experimental/inspector-profile/src/index.ts) |
+ | `@deepseek-ai/dsh-experimental-ralph-bundle` | — | [`packages/experimental/ralph-bundle/src/index.ts`](../packages/experimental/ralph-bundle/src/index.ts) |
+diff --git a/packages/experimental/README.i18n.yaml b/packages/experimental/README.i18n.yaml
+index 0259427fce..5fb734ca1c 100644
+--- a/packages/experimental/README.i18n.yaml
++++ b/packages/experimental/README.i18n.yaml
+@@ -18,8 +18,8 @@
+   en: b55aeb927737b90d
+   zh: 0b215fcb5c2c7908
+ /packages-experimental/packages:
+-  en: 8ea21461f84d30ad
+-  zh: b521c2d38a2b8eec
++  en: b16428ff048ce610
++  zh: 422fb1e7dd669b64
+ /packages-experimental/related-documentation:
+   en: 1cb9d3448d44e48d
+   zh: cd326d70a746b896
+diff --git a/packages/experimental/README.md b/packages/experimental/README.md
+index 8c085e46aa..a4cc236971 100644
+--- a/packages/experimental/README.md
++++ b/packages/experimental/README.md
+@@ -62,6 +62,9 @@ Promotion requires a named product role, documented public behavior and limitati
+ | [`agent-team-profile`](agent-team-profile/README.md) | Agent Teams collaboration, tools, and Web UI bundle | — |
+ | [`agent-team`](agent-team/README.md) | Named teammates with direct messages and a durable shared task board | `ctx.agentTeams` |
+ | [`client-ui-agent-team`](client-ui-agent-team/README.md) | Team roster, task board, and teammate navigation for Web | — |
++| [`agent-multi`](agent-multi/README.md) | Durable multi-agent workflow definitions with a journaled run engine, retry breakpoints, HITL, and triggers | `ctx.agentMultiController` |
++| [`client-ui-agent-multi`](client-ui-agent-multi/README.md) | Multi-agent workflow canvas editor and run kanban for Web | — |
++| [`agent-multi-profile`](agent-multi-profile/README.md) | Multi-agent workflow service and Web canvas bundle | — |
+ | [`auto-review`](auto-review/README.md) | Explicit Web layer for same-model review before each native or PTC inner tool call | — |
+ | [`claude-code-mods`](claude-code-mods/README.md) | Run Claude Code mods as plugins: their hook chains on harness extension points and a band above the prompt | `ctx.claudeCodeMods` |
+ | [`client-ui-claude-code-mods`](client-ui-claude-code-mods/README.md) | The Web band that draws a mod's tree above the prompt and sends button clicks back | — |
+diff --git a/packages/experimental/README.zh.md b/packages/experimental/README.zh.md
+index f182d6ad7b..fc2ac9683e 100644
+--- a/packages/experimental/README.zh.md
++++ b/packages/experimental/README.zh.md
+@@ -62,6 +62,9 @@ kind: "package-group"
+ | [`agent-team-profile`](agent-team-profile/README.zh.md) | Agent Teams 协作、工具与 Web UI 组合包 | — |
+ | [`agent-team`](agent-team/README.zh.md) | 具名 teammate，成员之间直接消息与持久共享任务板 | `ctx.agentTeams` |
+ | [`client-ui-agent-team`](client-ui-agent-team/README.zh.md) | Web Team roster、任务板与 teammate 导航 | — |
++| [`agent-multi`](agent-multi/README.zh.md) | 持久多智能体工作流定义，带日志化运行引擎、重试断点、人工介入与触发器 | `ctx.agentMultiController` |
++| [`client-ui-agent-multi`](client-ui-agent-multi/README.zh.md) | Web 多智能体工作流画布编辑器与运行看板 | — |
++| [`agent-multi-profile`](agent-multi-profile/README.zh.md) | 多智能体工作流服务与 Web 画布组合包 | — |
+ | [`auto-review`](auto-review/README.zh.md) | 显式 Web 层，在每个原生或 PTC inner 工具调用前使用同一模型审查 | — |
+ | [`claude-code-mods`](claude-code-mods/README.zh.md) | 把 Claude Code 模组作为插件运行：钩子链落在 harness 扩展点上，并在提示框上方绘制横幅 | `ctx.claudeCodeMods` |
+ | [`client-ui-claude-code-mods`](client-ui-claude-code-mods/README.zh.md) | 在提示框上方绘制模组树并把按钮点击发回的 Web 横幅 | — |
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index dfaa16532d..064c2af128 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -115,12 +115,12 @@ importers:
+       '@types/node':
+         specifier: ^22.20.1
+         version: 22.20.1
+-      '@types/semver':
+-        specifier: ^7.8.0
+-        version: 7.8.0
+       '@types/papaparse':
+         specifier: ^5.5.2
+         version: 5.5.2
++      '@types/semver':
++        specifier: ^7.8.0
++        version: 7.8.0
+       '@types/spdx-expression-parse':
+         specifier: ^4.0.0
+         version: 4.0.0
+@@ -7396,6 +7396,95 @@ importers:
+         specifier: workspace:*
+         version: link:../../core/session
+ 
++  packages/experimental/agent-multi:
++    dependencies:
++      '@deepseek-ai/dsh-brand':
++        specifier: workspace:*
++        version: link:../../util/brand
++      '@deepseek-ai/dsh-schedule':
++        specifier: workspace:*
++        version: link:../../schedule/schedule
++      '@deepseek-ai/schemastery':
++        specifier: link:../../../vendor/schemastery
++        version: link:../../../vendor/schemastery
++      zod:
++        specifier: ^4.4.3
++        version: 4.4.3
++    devDependencies:
++      '@deepseek-ai/cordis':
++        specifier: workspace:~
++        version: link:../../../vendor/cordis
++      '@deepseek-ai/dsh-agent':
++        specifier: workspace:*
++        version: link:../../core/agent
++      '@deepseek-ai/dsh-agent-loop':
++        specifier: workspace:*
++        version: link:../../core/agent-loop
++      '@deepseek-ai/dsh-agent-loop-testkit':
++        specifier: workspace:*
++        version: link:../../test-support/agent-loop-testkit
++      '@deepseek-ai/dsh-llm':
++        specifier: workspace:*
++        version: link:../../llm/llm
++      '@deepseek-ai/dsh-session':
++        specifier: workspace:*
++        version: link:../../core/session
++      '@deepseek-ai/dsh-session-persistence':
++        specifier: workspace:*
++        version: link:../../session/session-persistence
++      '@deepseek-ai/dsh-session-persistence-jsonl':
++        specifier: workspace:*
++        version: link:../../session/session-persistence-jsonl
++      '@deepseek-ai/dsh-session-projection':
++        specifier: workspace:*
++        version: link:../../session/session-projection
++      '@deepseek-ai/dsh-session-query':
++        specifier: workspace:*
++        version: link:../../session-query/session-query
++      '@deepseek-ai/dsh-storage':
++        specifier: workspace:*
++        version: link:../../storage/storage
++      '@deepseek-ai/dsh-storage-domain':
++        specifier: workspace:*
++        version: link:../../storage/storage-domain
++      '@deepseek-ai/dsh-subagent':
++        specifier: workspace:*
++        version: link:../../subagent/subagent
++      '@deepseek-ai/dsh-subagent-fork-in-process':
++        specifier: workspace:*
++        version: link:../../subagent/subagent-fork-in-process
++      '@deepseek-ai/dsh-subagent-spawn-in-process':
++        specifier: workspace:*
++        version: link:../../subagent/subagent-spawn-in-process
++      '@deepseek-ai/dsh-tools':
++        specifier: workspace:*
++        version: link:../../core/tools
++      '@deepseek-ai/dsh-typert-protocol':
++        specifier: workspace:*
++        version: link:../../typert/protocol
++      '@deepseek-ai/dsh-user-questions':
++        specifier: workspace:*
++        version: link:../../interaction/user-questions
++
++  packages/experimental/agent-multi-profile:
++    dependencies:
++      '@deepseek-ai/dsh-experimental-agent-multi':
++        specifier: workspace:*
++        version: link:../agent-multi
++      '@deepseek-ai/dsh-experimental-client-ui-agent-multi':
++        specifier: workspace:*
++        version: link:../client-ui-agent-multi
++    devDependencies:
++      '@deepseek-ai/cordis':
++        specifier: workspace:~
++        version: link:../../../vendor/cordis
++      '@deepseek-ai/cordis-plugin-include':
++        specifier: workspace:~
++        version: link:../../../vendor/include
++      js-yaml:
++        specifier: ^4.3.2
++        version: 4.3.2
++
+   packages/experimental/agent-team:
+     dependencies:
+       '@deepseek-ai/dsh-brand':
+@@ -7922,6 +8011,58 @@ importers:
+         specifier: workspace:*
+         version: link:../../session/working-directory
+ 
++  packages/experimental/client-ui-agent-multi:
++    dependencies:
++      '@xyflow/react':
++        specifier: ^12.12.0
++        version: 12.12.0(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(immer@10.2.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
++      zustand:
++        specifier: ^5.0.15
++        version: 5.0.15(@types/react@18.3.31)(immer@10.2.0)(react@18.3.1)(use-sync-external-store@1.6.0(react@18.3.1))
++    devDependencies:
++      '@deepseek-ai/cordis':
++        specifier: workspace:~
++        version: link:../../../vendor/cordis
++      '@deepseek-ai/dsh-client-locale':
++        specifier: workspace:*
++        version: link:../../client/locale
++      '@deepseek-ai/dsh-client-test-runtime':
++        specifier: workspace:*
++        version: link:../../test-support/client-runtime
++      '@deepseek-ai/dsh-client-ui-layout':
++        specifier: workspace:*
++        version: link:../../client/ui-layout
++      '@deepseek-ai/dsh-client-ui-primitives':
++        specifier: workspace:*
++        version: link:../../client/ui-primitives
++      '@deepseek-ai/dsh-client-ui-renderer':
++        specifier: workspace:*
++        version: link:../../client/ui-renderer
++      '@deepseek-ai/dsh-client-ui-sidebar':
++        specifier: workspace:*
++        version: link:../../client/ui-sidebar
++      '@deepseek-ai/dsh-client-ui-slots':
++        specifier: workspace:*
++        version: link:../../client/ui-slots
++      '@deepseek-ai/dsh-experimental-agent-multi':
++        specifier: workspace:*
++        version: link:../agent-multi
++      '@deepseek-ai/dsh-session':
++        specifier: workspace:*
++        version: link:../../core/session
++      '@deepseek-ai/dsh-typert-protocol':
++        specifier: workspace:*
++        version: link:../../typert/protocol
++      '@types/react':
++        specifier: ~18.3.1
++        version: 18.3.31
++      react:
++        specifier: ^18.2.0
++        version: 18.3.1
++      react-dom:
++        specifier: ^18.2.0
++        version: 18.3.1(react@18.3.1)
++
+   packages/experimental/client-ui-agent-team:
+     devDependencies:
+       '@deepseek-ai/cordis':
+@@ -15641,10 +15782,6 @@ importers:
+ 
+ packages:
+ 
+-  papaparse@5.5.3:
+-    resolution: {integrity: sha512-5QvjGxYVjxO59MGU2lHVYpRWBBtKHnlIAcSe1uNFCkkptUh63NFRj0FJQm7nR67puEruUci/ZkjmEFrjCAyP4A==}
+-
+-
+   '@agentclientprotocol/sdk@1.4.0':
+     resolution: {integrity: sha512-/eufudw+aFY1LKLolT6yFE6UMmYRl7fMJ/DEONSIyR6wI3slHWITBsANRGqXEY8FRzqUxwh7QEaGiZHcJPVThg==}
+     peerDependencies:
+@@ -18978,6 +19115,22 @@ packages:
+   '@xterm/xterm@6.0.0':
+     resolution: {integrity: sha512-TQwDdQGtwwDt+2cgKDLn0IRaSxYu1tSUjgKarSDkUM0ZNiSRXFpjxEsvc/Zgc5kq5omJ+V0a8/kIM2WD3sMOYg==}
+ 
++  '@xyflow/react@12.12.0':
++    resolution: {integrity: sha512-74oXI0Rgm1Eu33cHQAd74J6oVgCH9mbFyTVQbsGgp2kmWwh0HdtBr2VP04z8mbPD+M/xO69nqG5dDEt7/EN2rQ==}
++    peerDependencies:
++      '@types/react': '>=17'
++      '@types/react-dom': '>=17'
++      react: '>=17'
++      react-dom: '>=17'
++    peerDependenciesMeta:
++      '@types/react':
++        optional: true
++      '@types/react-dom':
++        optional: true
++
++  '@xyflow/system@0.0.83':
++    resolution: {integrity: sha512-a//eDjez3WZF47aaPTfVUDD0OINOq+WVwBZCRTqG+m0a5euX8EwlJ4jMY1Wxz0Ocj4xOeekJ70V22Pq0ll8RJw==}
++
+   '@yao-pkg/pkg-fetch@3.6.4':
+     resolution: {integrity: sha512-2JXvS9HbMudLlzEjSaJ7bLNnF/WlTv7iaTAJp2Tk8pBsgwCyL9p4rIN8cztHlyZF7qVzr1EaBjd7DQooFk0azQ==}
+     hasBin: true
+@@ -19430,6 +19583,9 @@ packages:
+     resolution: {integrity: sha512-77PSwercCZU2Fc4sX94eF8k8Pxte6JAwL4/ICZLFjJLqegs7kCuAsqqj/70NQF6TvDpgFjkubQB2FW2ZZddvQg==}
+     engines: {node: '>=8'}
+ 
++  classcat@5.0.5:
++    resolution: {integrity: sha512-JhZUT7JFcQy/EzW605k/ktHtncoo9vnyW/2GspNYwFlN1C/WmjuV/xtS04e9SOkL2sTdw0VAZ2UGCcQ9lR6p6w==}
++
+   cliui@7.0.4:
+     resolution: {integrity: sha512-OcRE68cOsVMXp1Yvonl/fzkQOyjLSu/8bhPDfQt0e0/Eb283TKP20Fs2MqoPsr9SwA595rRCA+QMzYc9nBP+JQ==}
+ 
+@@ -21701,6 +21857,9 @@ packages:
+   pako@1.0.11:
+     resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
+ 
++  papaparse@5.5.3:
++    resolution: {integrity: sha512-5QvjGxYVjxO59MGU2lHVYpRWBBtKHnlIAcSe1uNFCkkptUh63NFRj0FJQm7nR67puEruUci/ZkjmEFrjCAyP4A==}
++
+   papaparse@5.7.0:
+     resolution: {integrity: sha512-qBGxg/7Q3Kl9Wfhrz2Z74UnvnHTXLNG6jmKJFeBvP2+y4lV7So+7SR62+Zd47JvdrCkX+nDcnr0ObPzek/+6RA==}
+ 
+@@ -23222,14 +23381,29 @@ packages:
+       react:
+         optional: true
+ 
++  zustand@5.0.15:
++    resolution: {integrity: sha512-MpSEjRiBkA9crSYeOUH32rJC7SVqAbm0Fqcqge/bUi2PPoLcBWKOsG+C8mevmpr8TwXHBVkChbbJiyvkE+i/3A==}
++    engines: {node: '>=12.20.0'}
++    peerDependencies:
++      '@types/react': '>=18.0.0'
++      immer: '>=9.0.6'
++      react: '>=18.0.0'
++      use-sync-external-store: '>=1.2.0'
++    peerDependenciesMeta:
++      '@types/react':
++        optional: true
++      immer:
++        optional: true
++      react:
++        optional: true
++      use-sync-external-store:
++        optional: true
++
+   zwitch@2.0.4:
+     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
+ 
+ snapshots:
+ 
+-  papaparse@5.5.3: {}
+-
+-
+   '@agentclientprotocol/sdk@1.4.0(zod@4.4.3)':
+     dependencies:
+       zod: 4.4.3
+@@ -26234,6 +26408,31 @@ snapshots:
+ 
+   '@xterm/xterm@6.0.0': {}
+ 
++  '@xyflow/react@12.12.0(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(immer@10.2.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
++    dependencies:
++      '@xyflow/system': 0.0.83
++      classcat: 5.0.5
++      react: 18.3.1
++      react-dom: 18.3.1(react@18.3.1)
++      zustand: 4.5.7(@types/react@18.3.31)(immer@10.2.0)(react@18.3.1)
++    optionalDependencies:
++      '@types/react': 18.3.31
++      '@types/react-dom': 18.3.7(@types/react@18.3.31)
++    transitivePeerDependencies:
++      - immer
++
++  '@xyflow/system@0.0.83':
++    dependencies:
++      '@types/d3-drag': 3.0.7
++      '@types/d3-interpolate': 3.0.4
++      '@types/d3-selection': 3.0.11
++      '@types/d3-transition': 3.0.9
++      '@types/d3-zoom': 3.0.8
++      d3-drag: 3.0.0
++      d3-interpolate: 3.0.1
++      d3-selection: 3.0.0
++      d3-zoom: 3.0.0
++
+   '@yao-pkg/pkg-fetch@3.6.4':
+     dependencies:
+       picocolors: 1.1.1
+@@ -26754,6 +26953,8 @@ snapshots:
+ 
+   ci-info@4.4.0: {}
+ 
++  classcat@5.0.5: {}
++
+   cliui@7.0.4:
+     dependencies:
+       string-width: 4.2.3
+@@ -29443,6 +29644,8 @@ snapshots:
+ 
+   pako@1.0.11: {}
+ 
++  papaparse@5.5.3: {}
++
+   papaparse@5.7.0: {}
+ 
+   parse-ms@4.0.0: {}
+@@ -30999,4 +31202,11 @@ snapshots:
+       immer: 10.2.0
+       react: 18.3.1
+ 
++  zustand@5.0.15(@types/react@18.3.31)(immer@10.2.0)(react@18.3.1)(use-sync-external-store@1.6.0(react@18.3.1)):
++    optionalDependencies:
++      '@types/react': 18.3.31
++      immer: 10.2.0
++      react: 18.3.1
++      use-sync-external-store: 1.6.0(react@18.3.1)
++
+   zwitch@2.0.4: {}
+diff --git a/scripts/verify-package-readme-model-experience.ts b/scripts/verify-package-readme-model-experience.ts
+index 5aa525a4d6..dc5b5365df 100644
+--- a/scripts/verify-package-readme-model-experience.ts
++++ b/scripts/verify-package-readme-model-experience.ts
+@@ -116,6 +116,7 @@ const SENTENCE_MODEL_EXPERIENCE: Readonly<Record<string, SentenceContract>> = {
+   'packages/client/file-upload': { kind: 'none', reason: 'Browser-side request-body transport; registers nothing model-facing.' },
+   'packages/api/remotes': { kind: 'none', reason: 'The Remote BFF selects business methods and forwarded events; selected services own any model-visible effect.' },
+   'packages/experimental/client-ui-agent-team': { kind: 'none', reason: 'The browser projection and task controls register no model-facing input.' },
++  'packages/experimental/client-ui-agent-multi': { kind: 'none', reason: 'The browser canvas and run kanban register no model-facing input.' },
+   'packages/experimental/client-ui-claude-code-mods': { kind: 'none', reason: 'The browser draws Host-held mod trees and relays clicks; the mods\' own hooks own any model-visible effect.' },
+   'packages/client/shortcuts': { kind: 'none', reason: 'Browser keyboard routing; registers nothing model-facing.' },
+   'packages/client/ui-shortcuts': { kind: 'none', reason: 'Read-only browser reference; registers nothing model-facing.' },
+diff --git a/tsconfig.base.json b/tsconfig.base.json
+index 4ad99dbb89..79aa766ce0 100644
+--- a/tsconfig.base.json
++++ b/tsconfig.base.json
+@@ -60,6 +60,11 @@
+       "@deepseek-ai/dsh-experimental-speech-to-text/wave": ["./packages/experimental/speech-to-text/src/wave.ts"],
+       "@deepseek-ai/dsh-experimental-speech-to-text/types": ["./packages/experimental/speech-to-text/src/types.ts"],
+       "@deepseek-ai/dsh-experimental-api-speech-to-text/types": ["./packages/experimental/api-speech-to-text/src/types.ts"],
++      "@deepseek-ai/dsh-experimental-agent-multi": ["./packages/experimental/agent-multi/src/index.ts"],
++      "@deepseek-ai/dsh-experimental-agent-multi-profile": ["./packages/experimental/agent-multi-profile/src/index.ts"],
++      "@deepseek-ai/dsh-experimental-client-ui-agent-multi": ["./packages/experimental/client-ui-agent-multi/src/index.ts"],
++      "@deepseek-ai/dsh-experimental-agent-multi/types": ["./packages/experimental/agent-multi/src/types.ts"],
++      "@deepseek-ai/dsh-experimental-client-ui-agent-multi/client": ["./packages/experimental/client-ui-agent-multi/src/client/index.ts"],
+       "@deepseek-ai/dsh-experimental-client-ui-voice-input/client": ["./packages/experimental/client-ui-voice-input/src/client/index.ts"],
+       "@deepseek-ai/dsh-experimental-client-ui-claude-code-mods": ["./packages/experimental/client-ui-claude-code-mods/src/index.ts"],
+       "@deepseek-ai/dsh-experimental-client-ui-claude-code-mods/client": ["./packages/experimental/client-ui-claude-code-mods/src/client/index.ts"],
+@@ -319,6 +324,8 @@
+       "@deepseek-ai/dsh-sdk-client": ["./packages/sdk/client/src"],
+       "@deepseek-ai/dsh-sdk-protocol": ["./packages/sdk/protocol/src"],
+       "@deepseek-ai/dsh-sdk-jsonrpc-server": ["./packages/sdk/server/src"],
++      "@deepseek-ai/dsh-experimental-agent-multi": ["./packages/experimental/agent-multi/src"],
++      "@deepseek-ai/dsh-experimental-agent-multi-profile": ["./packages/experimental/agent-multi-profile/src"],
+       "@deepseek-ai/dsh-experimental-agent-team": ["./packages/experimental/agent-team/src"],
+       "@deepseek-ai/dsh-experimental-auto-review": ["./packages/experimental/auto-review/src"],
+       "@deepseek-ai/dsh-experimental-claude-code-mods": ["./packages/experimental/claude-code-mods/src"],
+diff --git a/tsconfig.client.json b/tsconfig.client.json
+index a8f0a9ed96..5af2814610 100644
+--- a/tsconfig.client.json
++++ b/tsconfig.client.json
+@@ -56,6 +56,7 @@
+     { "path": "./apps/desktop/tsconfig.client.json" },
+     { "path": "./packages/util/atomic-write" },
+     { "path": "./packages/experimental/client-ui-voice-input" },
++    { "path": "./packages/experimental/client-ui-agent-multi" },
+     { "path": "./packages/experimental/client-ui-claude-code-mods" },
+ 
+     { "path": "./packages/client/ui-sidebar-terminal" },
+diff --git a/tsconfig.host.json b/tsconfig.host.json
+index af38cdb341..89add5735d 100644
+--- a/tsconfig.host.json
++++ b/tsconfig.host.json
+@@ -469,6 +469,8 @@
+     { "path": "./packages/jobs/jobs-local" },
+     { "path": "./packages/jobs/tool-jobs" },
+     { "path": "./packages/experimental/agent-team" },
++    { "path": "./packages/experimental/agent-multi" },
++    { "path": "./packages/experimental/agent-multi-profile" },
+     { "path": "./packages/experimental/agent-team-profile" },
+     { "path": "./packages/experimental/inspector-profile" },
+     { "path": "./packages/experimental/tool-agent-team" },

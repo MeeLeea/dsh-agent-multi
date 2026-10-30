@@ -1,0 +1,52 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/experimental/agent-multi-profile/README.md
+/:
+  en: 42ac63005cd4caed
+  zh: 0c7edf481da5fc45
+/deepseek-ai-dsh-experimental-agent-multi-profile:
+  en: 98801c12a6e2f19d
+  zh: 530242f9e217ef71
+/deepseek-ai-dsh-experimental-agent-multi-profile/summary:
+  en: 1ef339d9ce0bd021
+  zh: 4a1c3b7dc17cbb09
+/deepseek-ai-dsh-experimental-agent-multi-profile/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-experimental-agent-multi-profile/use-this-package:
+  en: bbff250eba0f1b89
+  zh: 0a618f05cc88ee2b
+/deepseek-ai-dsh-experimental-agent-multi-profile/use-this-package/install-into-a-profile:
+  en: 1c02dc57b4493653
+  zh: 5d785171e62d5c56
+/deepseek-ai-dsh-experimental-agent-multi-profile/use-this-package/what-you-get:
+  en: e6378a1f8acf9e00
+  zh: 4e3ebe93ac38f800
+/deepseek-ai-dsh-experimental-agent-multi-profile/understand-the-implementation:
+  en: ce2406e305e4dc08
+  zh: 38ad0411cb876388
+/deepseek-ai-dsh-experimental-agent-multi-profile/further-exploration:
+  en: 5eaa5cae4d641e4c
+  zh: d1f893f3c988792f
+/deepseek-ai-dsh-experimental-agent-multi-profile/model-experience:
+  en: 215e7ba838619b7b
+  zh: a311da3843709f90
+/deepseek-ai-dsh-experimental-agent-multi-profile/model-experience/workflow-node-runs:
+  en: a536d6bb384485e9
+  zh: 17eb8546d9429424
+/deepseek-ai-dsh-experimental-agent-multi-profile/model-experience/workflow-node-runs/what-the-model-sees:
+  en: 7cee262224c86ab9
+  zh: bd92fcbb7bb60681
+/deepseek-ai-dsh-experimental-agent-multi-profile/model-experience/workflow-node-runs/token-effect:
+  en: 5b1d37945a8fc2ed
+  zh: 4943a5f18ab17732
+/deepseek-ai-dsh-experimental-agent-multi-profile/model-experience/workflow-node-runs/kv-cache-effect:
+  en: baf7318cb526cfa3
+  zh: b8be7f9ec730a516
+/deepseek-ai-dsh-experimental-agent-multi-profile/known-limitations-and-deferred-work:
+  en: 3e67f44886151b44
+  zh: 767eb4777a9e9817
+/deepseek-ai-dsh-experimental-agent-multi-profile/known-limitations-and-deferred-work/dev-note:
+  en: e67f633dc6fe7773
+  zh: 3bb0c20c93f16f98
