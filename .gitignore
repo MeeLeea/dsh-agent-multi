@@ -1,0 +1,38 @@
+# Local debug output
+# dump-config.txt is a cordis config dump captured from one local run.
+dump-config.txt
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# TypeScript incremental build state
+*.tsbuildinfo
+
+# Test and coverage output
+coverage/
+.nyc_output/
+
+# Local caches and temp files
+.cache/
+.tmp/
+*.tmp
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor and tool state
+.idea/
+.vscode/
+*.swp
+
+# NOTE: lib/ and repo/agent-multi-profile/lib/ are shipped, prebuilt artifacts.
+# They cannot be rebuilt from this directory alone (see repo/README.md), so they
+# stay tracked. src/ is the reference source and stays tracked as well.
