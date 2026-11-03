@@ -1,4 +1,4 @@
-/** The experimental bundle must carry one parseable, explicit multi-agent workflow layer. */
+/** The standalone bundle must carry one parseable, explicit multi-agent workflow layer. */
 
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -8,21 +8,20 @@ import * as yaml from 'js-yaml'
 import { entryListSchema } from '@deepseek-ai/cordis-plugin-include'
 
 describe('Agent Multi profile bundle', () => {
-  it('declares a public parseable layer with the workflow service and Web UI', () => {
+  it('declares a parseable layer with the workflow service, client discovered via package.json', () => {
     const root = fileURLToPath(new URL('..', import.meta.url))
     const manifest = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8')) as {
+      name?: string
       private?: boolean
-      publishConfig?: { access?: string }
-      dependencies?: Record<string, string>
-      dsh?: { bundle?: { patch?: string } }
+      dsh?: { bundle?: { patch?: string }; client?: { platform?: string } }
     }
-    expect(manifest.private).toBeUndefined()
-    expect(manifest.publishConfig?.access).toBe('public')
+    // Standalone layout: one private package ships host + client; the host row
+    // loads through cordis.patch.yml, the Web client is discovered from
+    // dsh.client in package.json (no separate ui-* insert row).
+    expect(manifest.name).toBe('dsh-agent-multi')
+    expect(manifest.private).toBe(true)
     expect(manifest.dsh?.bundle?.patch).toBe('./cordis.patch.yml')
-    expect(manifest.dependencies).toMatchObject({
-      '@deepseek-ai/dsh-experimental-agent-multi': 'workspace:*',
-      '@deepseek-ai/dsh-experimental-client-ui-agent-multi': 'workspace:*',
-    })
+    expect(manifest.dsh?.client?.platform).toBe('web')
 
     const parsed = yaml.load(
       readFileSync(resolve(root, manifest.dsh!.bundle!.patch!), 'utf8'),
@@ -37,11 +36,10 @@ describe('Agent Multi profile bundle', () => {
     }[]
     const inserted = patches.flatMap(patch => patch.insert ?? [])
     expect(inserted.find(entry => entry.id === 'agent-multi')).toMatchObject({
-      name: '@deepseek-ai/dsh-experimental-agent-multi',
+      name: 'dsh-agent-multi',
       config: { maxActive: 8 },
     })
-    expect(inserted.find(entry => entry.id === 'ui-agent-multi')).toMatchObject({
-      name: '@deepseek-ai/dsh-experimental-client-ui-agent-multi',
-    })
+    // The client half must NOT have a separate insert row anymore.
+    expect(inserted.some(entry => entry.id === 'ui-agent-multi')).toBe(false)
   })
 })

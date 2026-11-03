@@ -5,10 +5,10 @@
 import { describe, expect, it } from 'vitest'
 import { SESSION_FORMAT_VERSION, SessionId, SessionLogOffset, SessionSeq, type SessionEvent, type SessionEventMap, type SessionEventType } from '@deepseek-ai/dsh-session'
 import type { ProjectionDefinition } from '@deepseek-ai/dsh-session-projection'
-import { agentMultiProjectionDefinition, type AgentMultiProjectionState } from '../src/projection.ts'
+import { agentMultiProjectionDefinition, type AgentMultiProjectionState } from '../src/host/projection.ts'
 import { brandString } from '@deepseek-ai/dsh-brand'
-import type { RunId } from '../src/engine/events.ts'
-import type { WorkflowId } from '../src/types.ts'
+import type { RunId } from '../src/host/engine/events.ts'
+import type { WorkflowId } from '../src/host/types.ts'
 
 /** Widened reference: the literal export narrows `init` to its zero-arg form. */
 const projection: ProjectionDefinition<'agentMulti', AgentMultiProjectionState> = agentMultiProjectionDefinition

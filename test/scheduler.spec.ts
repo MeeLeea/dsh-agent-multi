@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { brandString } from '@deepseek-ai/dsh-brand'
 import type { ContentBlock, TextBlock } from '@deepseek-ai/dsh-llm'
-import type { WorkflowDefinition, WorkflowId, NodeSpec, EdgeSpec } from '../src/types.ts'
-import { Scheduler } from '../src/engine/scheduler.ts'
+import type { WorkflowDefinition, WorkflowId, NodeSpec, EdgeSpec } from '../src/host/types.ts'
+import { Scheduler } from '../src/host/engine/scheduler.ts'
 
 const t = (text: string): TextBlock => ({ type: 'text', text })
 const out = (text: string): readonly ContentBlock[] => [t(text)]

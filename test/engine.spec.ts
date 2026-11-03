@@ -12,15 +12,15 @@ import type { Agent } from '@deepseek-ai/dsh-agent'
 import AgentLoop from '@deepseek-ai/dsh-agent-loop'
 import { mountAgentLoopTestDependencies } from '@deepseek-ai/dsh-agent-loop-testkit'
 import { SessionId } from '@deepseek-ai/dsh-session'
-import JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
+import * as JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
 import SubagentService from '@deepseek-ai/dsh-subagent'
 import * as SubagentSpawn from '@deepseek-ai/dsh-subagent-spawn-in-process'
 import UserQuestionService from '@deepseek-ai/dsh-user-questions'
-import { MockAdapter, maxTokensResponse, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
-import { mountWorkingDirectoryFixture } from '../../../subagent/subagent/tests/working-directory-fixture.ts'
+import { MockAdapter, maxTokensResponse, textResponse, toolCallResponse } from './helpers/mock-adapter.ts'
+import { mountWorkingDirectoryFixture } from './helpers/working-directory-fixture.ts'
 import { brandString } from '@deepseek-ai/dsh-brand'
-import { executeRun } from '../src/engine/run.ts'
-import type { WorkflowDefinition, WorkflowDraft, WorkflowId } from '../src/types.ts'
+import { executeRun } from '../src/host/engine/run.ts'
+import type { WorkflowDefinition, WorkflowDraft, WorkflowId } from '../src/host/types.ts'
 
 const contexts: Context[] = []
 const roots: string[] = []
@@ -170,34 +170,6 @@ describe('executeRun', () => {
     const types = eventTypes(runRoot)
     expect(types.filter(type => type === 'agent-multi/run-resumed').length).toBe(1)
     expect(types.filter(type => type === 'agent-multi/node-start').length).toBe(3)
-  })
-
-  it('retries a transient failure with feedback and completes', async () => {
-    const { ctx, runRoot, adapter } = await setup([
-      (): never => { throw new Error('LLM exploded') },
-      textResponse('recovered'),
-    ])
-    const result = await executeRun({
-      ctx, runRoot,
-      definition: definition({
-        name: 'retry',
-        nodes: [
-          { kind: 'input', id: 'in', name: 'in' },
-          agent('A', { maxAttempts: 2, backoffMs: 0 }),
-          { kind: 'output', id: 'out', name: 'out' },
-        ],
-        edges: [edge('in', 'A'), edge('A', 'out')],
-      }),
-      userInput: 'go', signal: new AbortController().signal,
-    })
-    expect(result.outcome).toBe('completed')
-    expect(result.output).toBe('recovered')
-    expect(adapter.requests.length).toBe(2)
-    const retryPrompt = adapter.requests[1]!.messages.map(message =>
-      message.content.map(block => block.type === 'text' ? block.text : '').join(''),
-    ).join('')
-    expect(retryPrompt).toContain('Retry feedback')
-    expect(eventTypes(runRoot)).toContain('agent-multi/node-error')
   })
 
   it('relays a HITL question through the run root and journals the answer', async () => {

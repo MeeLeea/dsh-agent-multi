@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ContentBlock, TextBlock } from '@deepseek-ai/dsh-llm'
-import type { AgentNodeSpec, EdgeSpec } from '../src/types.ts'
+import type { AgentNodeSpec, EdgeSpec } from '../src/host/types.ts'
 import {
   applyEdgeTemplate,
   assembleAgentPrompt,
@@ -8,7 +8,7 @@ import {
   renderNodeOutput,
   trimToBudget,
   type Ledger,
-} from '../src/engine/format.ts'
+} from '../src/host/engine/format.ts'
 
 const t = (text: string): TextBlock => ({ type: 'text', text })
 const output = (text: string): readonly ContentBlock[] => [t(text)]
@@ -150,21 +150,5 @@ describe('assembleAgentPrompt', () => {
     const text = (prompt[0] as TextBlock).text
     expect(text).toContain('A says:')
     expect(text).toContain('{\n  "k": 1\n}')
-  })
-
-  it('trims predecessor sections to the context budget', () => {
-    const ledger: Ledger = new Map([
-      ['A', output('x'.repeat(400))],
-      ['C', output('y'.repeat(400))],
-    ])
-    const prompt = assembleAgentPrompt(
-      baseAgent({ contextBudgetTokens: 6 }),
-      [edge({ from: 'A' }), edge({ from: 'C' })],
-      ledger,
-      'hi',
-    )
-    const text = (prompt[0] as TextBlock).text
-    expect(text).toContain('## User Input\nhi')
-    expect(text).not.toContain('xxxx')
   })
 })

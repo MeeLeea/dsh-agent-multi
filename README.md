@@ -72,7 +72,8 @@ Notes:
 
 - The typert generator is workspace-shaped, so `tools/generate-typert.mjs` stages a throwaway workspace under `.typert-work/` (a copy of `src/host` plus every `@deepseek-ai/dsh-*` package in `node_modules`), runs the analyzer there, and copies the emitted `lib/typert.*` back. Never edit `lib/typert.*` by hand.
 - `lib/types/` is pure `tsc` output; `lib/index.js` and `lib/client.js` are tsdown bundles over it.
-- `npm test` runs the contract tests in-process (`node --test` spawns are denied under the harness sandbox).
+- `npm test` runs the contract tests in-process (`node --test` spawns are denied under the harness sandbox) and then the vitest spec suite (`test/*.spec.ts`, sources imported straight from `src/`). `npm run build` runs both after bundling, so a green build means a green test suite.
+- vitest transforms through oxc, which keeps TC39 decorators verbatim; `vitest.config.mjs` carries a tiny pre-pass that lowers `@Remote(...)` with esbuild in exactly the files that use it.
 
 ## Layout
 
@@ -85,9 +86,8 @@ lib/typert.*.js     # typert strict remote schemas (host + remote-client)
 lib/types/          # tsc emit (host at root, client under client/)
 src/host, src/client  # TypeScript sources (source of truth)
 tools/              # build pipeline: clean-build, generate-typert, build, run-tests
-test/               # contract tests (manifest, patch, typert names) via tools/run-tests.mjs
-repo/               # in-repo development artifacts (packages, tests, tsdown configs, restore patch)
+test/               # vitest specs (*.spec.ts) + contract tests (*.test.js) + helpers/
 docs/plan.md        # original design plan
 ```
 
-Run the contract tests with `npm test`.
+Run everything with `npm test`; `npm run test:spec` runs vitest alone. The pre-standalone in-repo archive (`repo/`) was removed after its specs were ported into `test/` — see git history for it.

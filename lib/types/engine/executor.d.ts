@@ -16,7 +16,7 @@ export declare class RunJournal {
     /** Append one event and flush the session to durable storage. */
     append<T extends AgentMultiEventType>(type: T, data: SessionEventMap[T]): Promise<void>;
 }
-/** Terminal failure of a node after the retry budget was spent. */
+/** Terminal failure of a node. */
 export interface NodeExecutionFailure {
     readonly ok: false;
     readonly errorClass: AgentMultiErrorClass;

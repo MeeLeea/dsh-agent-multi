@@ -99,7 +99,7 @@ interface RunRecord {
  * later phase.
  */
 export class AgentMultiController extends TypertRemoteService {
-  static inject = ['storageDomain', 'agentLoop', 'sessions', 'subagents', 'userQuestions', 'sessionProjections']
+  static inject = ['storageDomain', 'agentLoop', 'sessions', 'subagents', 'userQuestions', 'sessionProjections', 'llm']
 
   static Config = z.object({
     runRootProvider: z.string().default('deepseek'),

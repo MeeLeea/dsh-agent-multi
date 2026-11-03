@@ -9,9 +9,9 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import { brandString } from '@deepseek-ai/dsh-brand'
 import { remoteMethods } from '@deepseek-ai/dsh-typert-protocol'
-import { MemoryMediaPool } from '../../../storage/storage-domain/tests/helpers/memory-backend.ts'
+import { MemoryMediaPool } from './helpers/memory-backend.ts'
 import { cleanupHarnessRoots, mountStorage } from './helpers/mount-storage.ts'
-import type { WorkflowDraft, WorkflowId } from '../src/types.ts'
+import type { WorkflowDraft, WorkflowId } from '../src/host/types.ts'
 
 const contexts: Context[] = []
 
@@ -28,7 +28,7 @@ function baseDraft(): WorkflowDraft {
       { kind: 'input', id: 'in', name: 'Input' },
       {
         kind: 'agent', id: 'a1', name: 'A1', systemPrompt: 'you are A1',
-        retry: { maxAttempts: 2, backoffMs: 10 }, hitlEnabled: false,
+        hitlEnabled: false,
       },
       { kind: 'output', id: 'out', name: 'Out' },
     ],
@@ -88,8 +88,7 @@ describe('agent-multi workflow store', () => {
       nodes: [
         { kind: 'input', id: 'in', name: 'Input' },
         {
-          kind: 'agent', id: 'a1', name: 'A1', systemPrompt: 'you are A1',
-          retry: { maxAttempts: 0, backoffMs: 10 }, hitlEnabled: false,
+          kind: 'agent', id: 'a1', name: 'A1', hitlEnabled: false,
         },
         { kind: 'output', id: 'out', name: 'Out' },
       ],
@@ -217,8 +216,8 @@ describe('agent-multi workflow store', () => {
 
 describe('agent-multi library agents', () => {
   /** A reusable agent payload matching the agent-node schema minus identity. */
-  function agentSpec(): { kind: 'agent', systemPrompt: string, retry: { maxAttempts: number, backoffMs: number }, hitlEnabled: boolean } {
-    return { kind: 'agent', systemPrompt: 'you are reusable', retry: { maxAttempts: 3, backoffMs: 20 }, hitlEnabled: false }
+  function agentSpec(): { kind: 'agent', systemPrompt: string, model: string, permissionPreset: 'read-only', hitlEnabled: boolean } {
+    return { kind: 'agent', systemPrompt: 'you are reusable', model: 'gpt-x', permissionPreset: 'read-only', hitlEnabled: false }
   }
 
   it('creates, lists, saves, and deletes a library agent', async () => {
@@ -229,7 +228,8 @@ describe('agent-multi library agents', () => {
     if (created.outcome !== 'created') return
     expect(created.agent.name).toBe('writer')
     expect(created.agent.spec.systemPrompt).toBe('you are reusable')
-    expect(created.agent.spec.retry.maxAttempts).toBe(3)
+    expect(created.agent.spec.model).toBe('gpt-x')
+    expect(created.agent.spec.permissionPreset).toBe('read-only')
 
     const listed = await controller.listLibraryAgents()
     expect(listed).toHaveLength(1)
@@ -254,7 +254,7 @@ describe('agent-multi library agents', () => {
     const { ctx, controller } = await mountStorage(new MemoryMediaPool())
     track(ctx)
     const invalid = await controller.createLibraryAgent({
-      name: 'bad', spec: { kind: 'agent', systemPrompt: 'x', retry: { maxAttempts: 0, backoffMs: 10 }, hitlEnabled: false } as never,
+      name: 'bad', spec: { kind: 'agent', hitlEnabled: false } as never,
     })
     expect(invalid.outcome).toBe('invalid')
     if (invalid.outcome !== 'invalid' || invalid.errors.length === 0) return
@@ -264,6 +264,22 @@ describe('agent-multi library agents', () => {
       name: 'not-agent', spec: { kind: 'router', cases: ['a'] } as never,
     })
     expect(router.outcome).toBe('invalid')
+  })
+
+  it('strips removed agent fields instead of rejecting them', async () => {
+    const { ctx, controller } = await mountStorage(new MemoryMediaPool())
+    track(ctx)
+    // retry/provider/toolFilter were removed from the agent schema; payloads
+    // written before the removal must still load, so creates tolerate and
+    // drop them instead of rejecting.
+    const created = await controller.createLibraryAgent({
+      name: 'legacy', spec: { ...agentSpec(), retry: { maxAttempts: 3, backoffMs: 20 }, provider: 'legacy-provider' } as never,
+    })
+    expect(created.outcome).toBe('created')
+    if (created.outcome !== 'created') return
+    expect(created.agent.spec).not.toHaveProperty('retry')
+    expect(created.agent.spec).not.toHaveProperty('provider')
+    expect(created.agent.spec.systemPrompt).toBe('you are reusable')
   })
 
   it('persists library agents across a simulated process restart', async () => {

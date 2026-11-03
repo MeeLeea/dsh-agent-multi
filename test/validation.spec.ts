@@ -4,9 +4,9 @@
  * the happy path and the loop-guarded-cycle exemption.
  */
 import { describe, expect, it } from 'vitest'
-import { validateWorkflow } from '../src/validation.ts'
-import type { NodeSpec, WorkflowDraft } from '../src/domain.ts'
-import type { WorkflowValidationError } from '../src/contract.ts'
+import { validateWorkflow } from '../src/host/validation.ts'
+import type { NodeSpec, WorkflowDraft } from '../src/host/domain.ts'
+import type { WorkflowValidationError } from '../src/host/contract.ts'
 
 /** Fresh minimal runnable draft: input → agent → output. */
 function baseDraft(): WorkflowDraft {

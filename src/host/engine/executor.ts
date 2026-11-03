@@ -41,7 +41,7 @@ export class RunJournal {
   }
 }
 
-/** Terminal failure of a node after the retry budget was spent. */
+/** Terminal failure of a node. */
 export interface NodeExecutionFailure {
   readonly ok: false
   readonly errorClass: AgentMultiErrorClass

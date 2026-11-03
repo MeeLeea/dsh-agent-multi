@@ -1,11 +1,12 @@
 /**
  * Phase 0 spike probes for the experimental agent-multi plugin.
  *
- * S1 — subagent activation request surface: verify `toolFilter` scopes child
- *      tools (deny removes a tool from the prompt and refuses execution) and
- *      `agentOptions` overrides the child model. Confirms the per-node config
- *      fields the plan relies on (R2 tool scope; agent model/provider) flow
- *      through the production {@link SubagentStartRequest}.
+ * S1 — subagent activation request surface: verify `agentOptions` overrides
+ *      the child model/provider. Per-node tool scoping is NOT asserted:
+ *      `SubagentStartRequest` no longer carries `toolFilter` (the spawn
+ *      provider's capabilities dropped it and tool composition is owned by
+ *      the selected agent preset), which is why the plugin's agent schema
+ *      removed the field.
  *
  * S2 — typert host-side remote surface: a {@link TypertRemoteService}
  *      subclass with @Remote methods is discoverable by remoteMethods();
@@ -29,11 +30,10 @@ import type { ContentBlock, TextBlock } from '@deepseek-ai/dsh-llm'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import SubagentService from '@deepseek-ai/dsh-subagent'
 import * as SubagentSpawn from '@deepseek-ai/dsh-subagent-spawn-in-process'
-import { defineContentToolFixture } from '@deepseek-ai/dsh-tools'
 import { Remote, TypertRemoteService, remoteMethods } from '@deepseek-ai/dsh-typert-protocol'
 import UserQuestionService from '@deepseek-ai/dsh-user-questions'
-import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
-import { mountLocalActivations, startTestActivation as start } from '../../../subagent/subagent/tests/local-activation.ts'
+import { MockAdapter, textResponse } from './helpers/mock-adapter.ts'
+import { mountLocalActivations, startTestActivation as start } from './helpers/local-activation.ts'
 
 /** One model turn in the scripted mock conversation. */
 type ScriptTurn = ReturnType<typeof textResponse>
@@ -80,37 +80,6 @@ describe('agent-multi Phase 0 spike — S2 typert host surface', () => {
 })
 
 describe('agent-multi Phase 0 spike — S1 subagent request surface', () => {
-  it('toolFilter.deny removes a tool from the child prompt and refuses execution', async () => {
-    const { ctx, root, adapter } = await setup([
-      toolCallResponse('c1', 'forbidden_tool', {}),
-      textResponse('done'),
-    ])
-    ctx.effect(() => ctx.tools.register(defineContentToolFixture({
-      name: 'forbidden_tool',
-      description: 'a global tool the child must not see',
-      parameters: {},
-      execute: () => Promise.resolve([{ type: 'text', text: 'ran' }]),
-    })))
-
-    const run = await start(ctx, 'spawn', {
-      prompt: [{ type: 'text', text: 'Call forbidden_tool.' }],
-      parent: root,
-      toolFilter: { deny: ['forbidden_tool'] },
-    })
-    const result = await run.result
-
-    expect(result.stopReason).toBe('completed')
-    // The denied tool never reached the child's model request.
-    const childRequest = adapter.requests[0]!
-    expect(childRequest.tools ?? []).not.toContainEqual(expect.objectContaining({ name: 'forbidden_tool' }))
-    // The child attempted the call regardless; the runtime refused it.
-    const toolResult = run.localAgent.session.snapshotEvents()
-      .find(event => event.type === 'tool/result')
-    expect(JSON.stringify(toolResult?.data)).toContain('unknown tool')
-
-    await run.dispose()
-  })
-
   it('agentOptions overrides the child model and provider', async () => {
     const { ctx, root, adapter } = await setup([textResponse('hello')])
 
