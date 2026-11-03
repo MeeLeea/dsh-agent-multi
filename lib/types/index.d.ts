@@ -7,7 +7,7 @@
 import z from '@deepseek-ai/schemastery';
 import type { Context } from '@deepseek-ai/cordis';
 import { TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol';
-import type { CancelRunRequest, CancelRunResult, CreateLibraryAgentRequest, CreateLibraryAgentResult, CreateTriggerRequest, CreateTriggerResult, CreateWorkflowRequest, CreateWorkflowResult, DeleteTriggerRequest, DeleteTriggerResult, DeleteWorkflowRequest, DeleteWorkflowResult, DryRunNodeRequest, DryRunNodeResult, ExportWorkflowRequest, ExportWorkflowResult, GetRunRequest, GetRunResult, GetWorkflowRequest, GetWorkflowResult, ImportWorkflowRequest, ImportWorkflowResult, ListRunsRequest, ListRunsResult, ListTriggersRequest, ListTriggersResult, ResumeRunRequest, ResumeRunResult, SaveLibraryAgentRequest, SaveLibraryAgentResult, SaveWorkflowRequest, SaveWorkflowResult, SetTriggerEnabledRequest, SetTriggerEnabledResult, StartRunRequest, StartRunResult, ValidateWorkflowRequest, ValidateWorkflowResult, WorkflowSummary, AgentLibraryEntry } from './contract.ts';
+import type { CancelRunRequest, CancelRunResult, CreateLibraryAgentRequest, CreateLibraryAgentResult, CreateTriggerRequest, CreateTriggerResult, CreateWorkflowRequest, CreateWorkflowResult, DeleteTriggerRequest, DeleteTriggerResult, DeleteWorkflowRequest, DeleteWorkflowResult, DryRunNodeRequest, DryRunNodeResult, ExportWorkflowRequest, ExportWorkflowResult, GetRunRequest, GetRunResult, GetWorkflowRequest, GetWorkflowResult, ImportWorkflowRequest, ImportWorkflowResult, ListRunsRequest, ListRunsResult, ListTriggersRequest, ListTriggersResult, ModelCatalog, ResumeRunRequest, ResumeRunResult, SaveLibraryAgentRequest, SaveLibraryAgentResult, SaveWorkflowRequest, SaveWorkflowResult, SetTriggerEnabledRequest, SetTriggerEnabledResult, StartRunRequest, StartRunResult, ValidateWorkflowRequest, ValidateWorkflowResult, WorkflowSummary, AgentLibraryEntry } from './contract.ts';
 import type { AgentLibraryId } from './types.ts';
 /** Controller configuration. */
 export interface Config {
@@ -60,6 +60,12 @@ export declare class AgentMultiController extends TypertRemoteService {
     ping(): {
         pong: true;
     };
+    /**
+     * Read the host model catalog: registered providers with their models, so
+     * the client can offer provider/model dropdowns instead of free text. A
+     * provider whose model listing fails is skipped, not fatal.
+     */
+    listModelCatalog(): Promise<ModelCatalog>;
     /** @param request - Draft content for a new workflow. */
     createWorkflow(request: CreateWorkflowRequest): Promise<CreateWorkflowResult>;
     /** @param request - Draft content plus the revision the editor based it on. */
@@ -99,12 +105,6 @@ export declare class AgentMultiController extends TypertRemoteService {
     saveLibraryAgent(request: SaveLibraryAgentRequest): Promise<SaveLibraryAgentResult>;
     /** Lists every library agent, name-ascending with id as tiebreaker. */
     listLibraryAgents(): Promise<AgentLibraryEntry[]>;
-    /**
-     * Read the host model catalog: registered providers with their models, so
-     * the client can offer provider/model dropdowns instead of free text. A
-     * provider whose model listing fails is skipped, not fatal.
-     */
-    listModelCatalog(): Promise<ModelCatalog>;
     /**
      * Delete one library agent. Stored workflows keep their own node copies,
      * so deleting never breaks an existing workflow.
@@ -198,8 +198,7 @@ declare module '@deepseek-ai/cordis' {
         agentMultiController: AgentMultiController;
     }
 }
-export type { CancelRunRequest, CancelRunResult, CreateLibraryAgentRequest, CreateLibraryAgentResult, CreateTriggerRequest, CreateTriggerResult, CreateWorkflowRequest, CreateWorkflowResult, DeleteLibraryAgentResult, DeleteTriggerRequest, DeleteTriggerResult, DeleteWorkflowRequest, DeleteWorkflowResult, DryRunNodeRequest, DryRunNodeResult, ExportWorkflowRequest, ExportWorkflowResult, GetRunRequest, GetRunResult, GetWorkflowRequest, GetWorkflowResult, ImportWorkflowRequest, ImportWorkflowResult, ListRunsRequest, ListRunsResult, ListTriggersRequest, ListTriggersResult, ModelCatalog, ModelCatalogModel, ModelCatalogProvider, ResumeRunRequest, ResumeRunResult, RunHitlView, RunNodeView, RunStatus, RunSummary, RunView, SaveLibraryAgentRequest, SaveLibraryAgentResult, SaveWorkflowRequest, SaveWorkflowResult, SetTriggerEnabledRequest, SetTriggerEnabledResult, StartRunRequest, StartRunResult, TriggerEntry, ValidateWorkflowRequest, ValidateWorkflowResult, WorkflowExportDocument, WorkflowSummary, WorkflowValidationError, } from './contract.ts';
+export type { CancelRunRequest, CancelRunResult, CreateLibraryAgentRequest, CreateLibraryAgentResult, CreateTriggerRequest, CreateTriggerResult, CreateWorkflowRequest, CreateWorkflowResult, DeleteLibraryAgentResult, DeleteTriggerRequest, DeleteTriggerResult, DeleteWorkflowRequest, DeleteWorkflowResult, DryRunNodeRequest, DryRunNodeResult, ExportWorkflowRequest, ExportWorkflowResult, GetRunRequest, GetRunResult, GetWorkflowRequest, GetWorkflowResult, ImportWorkflowRequest, ImportWorkflowResult, ListRunsRequest, ListRunsResult, ListTriggersRequest, ListTriggersResult, ModelCatalog, ModelCatalogModel, ModelCatalogProvider, ResumeRunRequest, ResumeRunResult, RunHitlView, RunNodeView, RunStatus, RunSummary, RunView, SaveLibraryAgentRequest, SaveLibraryAgentResult, SaveWorkflowRequest, SaveWorkflowResult, SetTriggerEnabledRequest, SetTriggerEnabledResult, StartRunRequest, StartRunResult, TriggerEntry, ValidateWorkflowRequest, ValidateWorkflowResult, WorkflowExportDocument, WorkflowSummary, WorkflowValidationError, AgentMultiJsonValue, } from './contract.ts';
 export type { AgentMultiErrorClass } from './engine/events.ts';
-export type { AgentLibraryEntry, AgentLibraryId, AgentLibrarySpec, TriggerTiming, EdgeFormat, EdgeSpec, NodeKind, NodeSpec, WorkflowDefinition, WorkflowDraft, WorkflowId, } from './types.ts';
+export type { AgentLibraryEntry, AgentLibraryId, AgentLibrarySpec, AgentNodeSpec, TriggerTiming, EdgeFormat, EdgeSpec, NodeKind, NodeSpec, WorkflowDefinition, WorkflowDraft, WorkflowId, } from './types.ts';
 export default AgentMultiController;
-//# sourceMappingURL=index.d.ts.map

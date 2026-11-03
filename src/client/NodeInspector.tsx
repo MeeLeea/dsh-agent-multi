@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { Button, IconTrashOutlineRegular } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
-import type { AgentNodeSpec, AgentLibrarySpec, DryRunNodeResult, ModelCatalog, NodeSpec } from '@deepseek-ai/dsh-experimental-agent-multi/types'
+import type { AgentNodeSpec, AgentLibrarySpec, DryRunNodeResult, ModelCatalog, NodeSpec } from 'dsh-agent-multi/types'
 import type { AgentMultiKey } from './locales.ts'
 import css from './WorkflowEditor.module.css'
 
@@ -32,7 +32,7 @@ export interface NodeInspectorProps {
   readonly onDelete: () => void
   readonly dryRun?: DryRunActions
   readonly library?: LibraryActions
-  readonly catalog?: CatalogActions
+  readonly catalog?: CatalogActions | undefined
   readonly labels: PropsRuntime<'main'> & PropsLocale<'agent-multi'>
 }
 
@@ -112,10 +112,9 @@ function AgentFields(props: {
   readonly spec: Extract<NodeSpec, { kind: 'agent' }>
   readonly onChange: (next: NodeSpec) => void
   readonly t: Translate
-  readonly catalog?: CatalogActions
+  readonly catalog?: CatalogActions | undefined
 }) {
   const { spec, onChange, t, catalog } = props
-  const { retry } = spec
   const [modelCatalog, setModelCatalog] = useState<ModelCatalog | null>(null)
   const [catalogFailed, setCatalogFailed] = useState(false)
   const catalogLoad = catalog?.load
@@ -129,9 +128,7 @@ function AgentFields(props: {
     })
     return () => { cancelled = true }
   }, [catalogLoad])
-  const providers = modelCatalog?.providers ?? []
   const models = modelCatalog?.models ?? []
-  const scopedModels = spec.provider === undefined ? models : models.filter(model => model.provider === spec.provider)
   return <>
     <label className={css.field}>
       <span className={css.fieldLabel}>{t('nodeSystemPrompt')}</span>
@@ -139,60 +136,32 @@ function AgentFields(props: {
         onChange={event => { onChange({ ...spec, systemPrompt: event.target.value }) }} />
     </label>
     <label className={css.field}>
-      <span className={css.fieldLabel}>{t('nodeProvider')}</span>
-      {providers.length > 0
-        ? <select
-          className={css.select}
-          value={spec.provider ?? ''}
-          onChange={event => { onChange(withProvider(spec, event.target.value)) }}
-        >
-          <option value=''>{t('nodeModelPlaceholder')}</option>
-          {providers.map(provider => <option key={provider.id} value={provider.id}>{provider.name}</option>)}
-        </select>
-        : <input className={css.input} value={textOf(spec.provider)} placeholder={catalogFailed ? t('catalogFailed') : t('nodeModelPlaceholder')}
-          onChange={event => { onChange(withProvider(spec, event.target.value)) }} />}
-    </label>
-    <label className={css.field}>
       <span className={css.fieldLabel}>{t('nodeModel')}</span>
-      {scopedModels.length > 0
+      {models.length > 0
         ? <select
           className={css.select}
           value={spec.model ?? ''}
           onChange={event => { onChange(withModel(spec, event.target.value)) }}
         >
           <option value=''>{t('nodeModelPlaceholder')}</option>
-          {scopedModels.map(model => <option key={`${model.provider}/${model.id}`} value={model.id}>{model.name}</option>)}
+          {models.map(model => <option key={`${model.provider}/${model.id}`} value={model.id}>{model.provider} · {model.name}</option>)}
         </select>
-        : <input className={css.input} value={textOf(spec.model)} placeholder={t('nodeModelPlaceholder')}
+        : <input className={css.input} value={textOf(spec.model)} placeholder={catalogFailed ? t('catalogFailed') : t('nodeModelPlaceholder')}
           onChange={event => { onChange(withModel(spec, event.target.value)) }} />}
     </label>
     <label className={css.field}>
-      <span className={css.fieldLabel}>{t('nodeToolAllow')}</span>
-      <textarea className={css.textarea} rows={3} value={textOf(spec.toolFilter?.allow?.join('\n'))}
-        onChange={event => { onChange(withToolFilter(spec, 'allow', event.target.value)) }} />
+      <span className={css.fieldLabel}>{t('nodePermission')}</span>
+      <select
+        className={css.select}
+        value={spec.permissionPreset ?? ''}
+        onChange={event => { onChange(withPermissionPreset(spec, event.target.value)) }}
+      >
+        <option value=''>{t('permissionInherit')}</option>
+        <option value='read-only'>{t('permissionReadOnly')}</option>
+        <option value='workspace-write'>{t('permissionWorkspaceWrite')}</option>
+        <option value='danger-full-access'>{t('permissionFullAccess')}</option>
+      </select>
     </label>
-    <label className={css.field}>
-      <span className={css.fieldLabel}>{t('nodeToolDeny')}</span>
-      <textarea className={css.textarea} rows={3} value={textOf(spec.toolFilter?.deny?.join('\n'))}
-        onChange={event => { onChange(withToolFilter(spec, 'deny', event.target.value)) }} />
-    </label>
-    <NumberField label={t('nodeContextBudget')} value={spec.contextBudgetTokens}
-      onChange={value => { onChange(withNumber(spec, 'contextBudgetTokens', value)) }} />
-    <NumberField label={t('nodeRetry')} value={retry.maxAttempts} min={1}
-      onChange={value => { onChange({ ...spec, retry: { ...retry, maxAttempts: value ?? 1 } }) }} />
-    <NumberField label={t('nodeBackoff')} value={retry.backoffMs} min={0}
-      onChange={value => { onChange({ ...spec, retry: { ...retry, backoffMs: value ?? 0 } }) }} />
-    <label className={css.field}>
-      <span className={css.fieldLabel}>{t('nodeFallbackModel')}</span>
-      <input className={css.input} value={textOf(retry.fallbackModel)}
-        onChange={event => {
-          const fallbackModel = event.target.value
-          const next = fallbackModel === '' ? stripFallback(retry) : { ...retry, fallbackModel }
-          onChange({ ...spec, retry: next })
-        }} />
-    </label>
-    <NumberField label={t('nodeTimeout')} value={spec.timeoutMs}
-      onChange={value => { onChange(withNumber(spec, 'timeoutMs', value)) }} />
     <label className={css.field}>
       <span className={css.fieldLabel}>{t('nodeHitl')}</span>
       <input type='checkbox' checked={spec.hitlEnabled}
@@ -256,33 +225,14 @@ function NumberField(props: {
 
 type AgentSpec = Extract<NodeSpec, { kind: 'agent' }>
 
-function withProvider(spec: AgentSpec, provider: string): NodeSpec {
-  return provider === '' ? stripKey({ ...spec }, 'provider') : { ...spec, provider }
-}
-
 function withModel(spec: AgentSpec, model: string): NodeSpec {
   return model === '' ? stripKey({ ...spec }, 'model') : { ...spec, model }
 }
 
-function withNumber<K extends 'contextBudgetTokens' | 'timeoutMs'>(spec: AgentSpec, key: K, value: number | undefined): NodeSpec {
-  return value === undefined ? stripKey({ ...spec }, key) : { ...spec, [key]: value }
-}
-
-function withToolFilter(spec: AgentSpec, key: 'allow' | 'deny', value: string): NodeSpec {
-  const items = value.split('\n').map(line => line.trim()).filter(line => line !== '')
-  const current = spec.toolFilter
-  const next = items.length === 0
-    ? { ...(current ?? {}), [key]: undefined }
-    : { ...(current ?? {}), [key]: items }
-  const allow = next.allow
-  const deny = next.deny
-  if (allow === undefined && deny === undefined) return stripKey({ ...spec }, 'toolFilter')
-  return { ...spec, toolFilter: { ...(allow === undefined ? {} : { allow }), ...(deny === undefined ? {} : { deny }) } }
-}
-
-function stripFallback(retry: AgentSpec['retry']): AgentSpec['retry'] {
-  const { fallbackModel: _fallbackModel, ...rest } = retry
-  return rest
+function withPermissionPreset(spec: AgentSpec, permissionPreset: string): NodeSpec {
+  return permissionPreset === ''
+    ? stripKey({ ...spec }, 'permissionPreset')
+    : { ...spec, permissionPreset: permissionPreset as NonNullable<AgentSpec['permissionPreset']> }
 }
 
 type LoopSpec = Extract<NodeSpec, { kind: 'loop' }>
@@ -368,26 +318,12 @@ function DryRunSection(props: {
 
 /** Library-copy spec from an agent node spec, dropping canvas-local fields. */
 function librarySpecOf(spec: AgentNodeSpec): AgentLibrarySpec {
-  const { kind, systemPrompt, provider, model, toolFilter, permissionPreset, contextBudgetTokens, timeoutMs } = spec
-  const { maxAttempts, backoffMs, fallbackModel } = spec.retry
+  const { kind, systemPrompt, model, permissionPreset } = spec
   return {
     kind, systemPrompt,
     hitlEnabled: spec.hitlEnabled ?? false,
-    retry: {
-      maxAttempts, backoffMs,
-      ...(fallbackModel === undefined ? {} : { fallbackModel }),
-    },
-    ...(provider === undefined ? {} : { provider }),
     ...(model === undefined ? {} : { model }),
-    ...(toolFilter === undefined ? {} : {
-      toolFilter: {
-        ...(toolFilter.allow === undefined ? {} : { allow: [...toolFilter.allow] }),
-        ...(toolFilter.deny === undefined ? {} : { deny: [...toolFilter.deny] }),
-      },
-    }),
     ...(permissionPreset === undefined ? {} : { permissionPreset }),
-    ...(contextBudgetTokens === undefined ? {} : { contextBudgetTokens }),
-    ...(timeoutMs === undefined ? {} : { timeoutMs }),
   }
 }
 

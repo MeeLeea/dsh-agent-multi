@@ -6,4 +6,3 @@ export { inject } from './mount.ts';
  * @returns disposer withdrawing the Remote namespace and slot entries.
  */
 export declare function apply(ctx: ClientContext): Promise<() => Promise<void>>;
-//# sourceMappingURL=index.d.ts.map

@@ -1,0 +1,12 @@
+{
+  // Host face leaf: compiles src/host/ to lib/types/ (flat). The host bundle
+  // (lib/index.js) consumes lib/types/index.js; this face emits first so the
+  // client face and Typert staging can resolve dsh-agent-multi/types.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src/host",
+    "outDir": "lib/types",
+    "tsBuildInfoFile": "lib/types/.host.tsbuildinfo"
+  },
+  "include": ["src/host/**/*.ts"]
+}

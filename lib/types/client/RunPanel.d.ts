@@ -1,6 +1,6 @@
 import '@xyflow/react/dist/style.css';
 import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots';
-import type { WorkflowId } from '@deepseek-ai/dsh-experimental-agent-multi/types';
+import type { WorkflowId } from 'dsh-agent-multi/types';
 import type { AgentMultiInjected } from './WorkflowPage.tsx';
 /** The run target: which stored workflow to execute. */
 export interface RunTarget {
@@ -17,4 +17,3 @@ export declare function RunPanel(props: {
     readonly actions: PropsRuntime<'main'> & AgentMultiInjected & PropsLocale<'agent-multi'>;
     readonly onExit: () => void;
 }): import("react").JSX.Element;
-//# sourceMappingURL=RunPanel.d.ts.map

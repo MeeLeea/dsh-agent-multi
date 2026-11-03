@@ -24,17 +24,6 @@ export type EdgeFormat = 'json' | 'md' | 'text'
 /** Node ids double as template identifiers; keep them template-safe. */
 const nodeIdSchema = z.string().regex(/^[A-Za-z0-9_-]+$/)
 
-const retryPolicySchema = z.object({
-  maxAttempts: z.number().int().min(1),
-  backoffMs: z.number().int().min(0),
-  fallbackModel: z.string().min(1).optional(),
-}).strict()
-
-const toolFilterSchema = z.object({
-  allow: z.array(z.string().min(1)).optional(),
-  deny: z.array(z.string().min(1)).optional(),
-}).strict()
-
 const nodeBaseSchema = z.object({
   id: nodeIdSchema,
   name: z.string().min(1),
@@ -42,16 +31,46 @@ const nodeBaseSchema = z.object({
   position: z.object({ x: z.number(), y: z.number() }).strict().optional(),
 }).strict()
 
+/**
+ * Fields removed from agent nodes after earlier releases. Records saved
+ * before a removal keep the field in storage; reads tolerate and drop it,
+ * and the next save persists the record without it. Node agents inherit the
+ * host defaults for each removed field (run-root route, full tool set,
+ * untrimmed prompt, single attempt, no node timeout).
+ */
+const REMOVED_AGENT_FIELDS = ['provider', 'toolFilter', 'contextBudgetTokens', 'retry', 'timeoutMs'] as const
+
+/**
+ * Drop the removed agent-node fields before strict parsing. Records saved
+ * before the removals keep them in storage; reads tolerate and drop them.
+ */
+function stripAgentNodeFields(nodes: unknown): unknown {
+  if (!Array.isArray(nodes)) return nodes
+  return nodes.map(node => {
+    if (typeof node !== 'object' || node === null) return node
+    const record = node as Record<string, unknown>
+    if (record.kind !== 'agent' || !REMOVED_AGENT_FIELDS.some(field => field in record)) return node
+    const clone = { ...record }
+    for (const field of REMOVED_AGENT_FIELDS) delete clone[field]
+    return clone
+  })
+}
+
+/** Drop the removed fields from a library-agent spec before parsing. */
+function stripSpecFields(spec: unknown): unknown {
+  if (typeof spec !== 'object' || spec === null) return spec
+  const record = spec as Record<string, unknown>
+  if (!REMOVED_AGENT_FIELDS.some(field => field in record)) return spec
+  const clone = { ...record }
+  for (const field of REMOVED_AGENT_FIELDS) delete clone[field]
+  return clone
+}
+
 const agentNodeSchema = nodeBaseSchema.extend({
   kind: z.literal('agent'),
   systemPrompt: z.string(),
-  provider: z.string().min(1).optional(),
   model: z.string().min(1).optional(),
-  toolFilter: toolFilterSchema.optional(),
-  permissionPreset: z.string().min(1).optional(),
-  contextBudgetTokens: z.number().int().positive().optional(),
-  retry: retryPolicySchema,
-  timeoutMs: z.number().int().positive().optional(),
+  permissionPreset: z.enum(['read-only', 'workspace-write', 'danger-full-access']).optional(),
   hitlEnabled: z.boolean(),
 }).strict()
 
@@ -94,10 +113,13 @@ const edgeSchema = z.object({
   inContext: z.boolean().default(true),
 }).strict()
 
+/** Nodes with the removed fields stripped on the way into the strict parse. */
+const nodesSchema = z.preprocess(stripAgentNodeFields, z.array(nodeSchema))
+
 /** Editor payload: definition content without server-assigned identity. */
 export const workflowDraftSchema = z.object({
   name: z.string().min(1),
-  nodes: z.array(nodeSchema),
+  nodes: nodesSchema,
   edges: z.array(edgeSchema),
 }).strict()
 
@@ -107,7 +129,7 @@ export const workflowDefinitionSchema = z.object({
   id: z.string().transform(brandString<WorkflowId>),
   name: z.string().min(1),
   revision: z.number().int().min(1),
-  nodes: z.array(nodeSchema),
+  nodes: nodesSchema,
   edges: z.array(edgeSchema),
 }).strict()
 
@@ -173,19 +195,16 @@ export type AgentLibraryId = Branded<'AgentLibraryId'>
  * inserting into a workflow copies it onto a fresh node, keeping exported
  * workflow documents self-contained.
  */
-export const agentLibrarySpecSchema = agentNodeSchema
-  .omit({ id: true, name: true, position: true }) as z.ZodType<AgentLibrarySpec>
+export const agentLibrarySpecSchema = z.preprocess(
+  stripSpecFields,
+  agentNodeSchema.omit({ id: true, name: true, position: true }),
+) as z.ZodType<AgentLibrarySpec>
 
 export interface AgentLibrarySpec {
   readonly kind: 'agent'
   readonly systemPrompt: string
-  readonly provider?: string
   readonly model?: string
-  readonly toolFilter?: { readonly allow?: readonly string[], readonly deny?: readonly string[] }
-  readonly permissionPreset?: string
-  readonly contextBudgetTokens?: number
-  readonly retry: { maxAttempts: number, backoffMs: number, fallbackModel?: string }
-  readonly timeoutMs?: number
+  readonly permissionPreset?: 'read-only' | 'workspace-write' | 'danger-full-access'
   readonly hitlEnabled: boolean
 }
 

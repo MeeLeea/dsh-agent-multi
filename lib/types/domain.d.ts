@@ -31,20 +31,12 @@ declare const nodeSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     }, z.core.$strict>>;
     kind: z.ZodLiteral<"agent">;
     systemPrompt: z.ZodString;
-    provider: z.ZodOptional<z.ZodString>;
     model: z.ZodOptional<z.ZodString>;
-    toolFilter: z.ZodOptional<z.ZodObject<{
-        allow: z.ZodOptional<z.ZodArray<z.ZodString>>;
-        deny: z.ZodOptional<z.ZodArray<z.ZodString>>;
-    }, z.core.$strict>>;
-    permissionPreset: z.ZodOptional<z.ZodString>;
-    contextBudgetTokens: z.ZodOptional<z.ZodNumber>;
-    retry: z.ZodObject<{
-        maxAttempts: z.ZodNumber;
-        backoffMs: z.ZodNumber;
-        fallbackModel: z.ZodOptional<z.ZodString>;
-    }, z.core.$strict>;
-    timeoutMs: z.ZodOptional<z.ZodNumber>;
+    permissionPreset: z.ZodOptional<z.ZodEnum<{
+        "read-only": "read-only";
+        "workspace-write": "workspace-write";
+        "danger-full-access": "danger-full-access";
+    }>>;
     hitlEnabled: z.ZodBoolean;
 }, z.core.$strict>, z.ZodObject<{
     id: z.ZodString;
@@ -112,9 +104,9 @@ declare const edgeSchema: z.ZodObject<{
     to: z.ZodString;
     toHandle: z.ZodOptional<z.ZodLiteral<"back">>;
     format: z.ZodEnum<{
-        text: "text";
         json: "json";
         md: "md";
+        text: "text";
     }>;
     template: z.ZodOptional<z.ZodString>;
     inContext: z.ZodDefault<z.ZodBoolean>;
@@ -122,7 +114,7 @@ declare const edgeSchema: z.ZodObject<{
 /** Editor payload: definition content without server-assigned identity. */
 export declare const workflowDraftSchema: z.ZodObject<{
     name: z.ZodString;
-    nodes: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+    nodes: z.ZodPreprocess<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
         position: z.ZodOptional<z.ZodObject<{
@@ -139,20 +131,12 @@ export declare const workflowDraftSchema: z.ZodObject<{
         }, z.core.$strict>>;
         kind: z.ZodLiteral<"agent">;
         systemPrompt: z.ZodString;
-        provider: z.ZodOptional<z.ZodString>;
         model: z.ZodOptional<z.ZodString>;
-        toolFilter: z.ZodOptional<z.ZodObject<{
-            allow: z.ZodOptional<z.ZodArray<z.ZodString>>;
-            deny: z.ZodOptional<z.ZodArray<z.ZodString>>;
-        }, z.core.$strict>>;
-        permissionPreset: z.ZodOptional<z.ZodString>;
-        contextBudgetTokens: z.ZodOptional<z.ZodNumber>;
-        retry: z.ZodObject<{
-            maxAttempts: z.ZodNumber;
-            backoffMs: z.ZodNumber;
-            fallbackModel: z.ZodOptional<z.ZodString>;
-        }, z.core.$strict>;
-        timeoutMs: z.ZodOptional<z.ZodNumber>;
+        permissionPreset: z.ZodOptional<z.ZodEnum<{
+            "read-only": "read-only";
+            "workspace-write": "workspace-write";
+            "danger-full-access": "danger-full-access";
+        }>>;
         hitlEnabled: z.ZodBoolean;
     }, z.core.$strict>, z.ZodObject<{
         id: z.ZodString;
@@ -212,7 +196,7 @@ export declare const workflowDraftSchema: z.ZodObject<{
         }, z.core.$strict>>;
         kind: z.ZodLiteral<"note">;
         text: z.ZodString;
-    }, z.core.$strict>], "kind">>;
+    }, z.core.$strict>], "kind">>>;
     edges: z.ZodArray<z.ZodObject<{
         id: z.ZodString;
         from: z.ZodString;
@@ -220,9 +204,9 @@ export declare const workflowDraftSchema: z.ZodObject<{
         to: z.ZodString;
         toHandle: z.ZodOptional<z.ZodLiteral<"back">>;
         format: z.ZodEnum<{
-            text: "text";
             json: "json";
             md: "md";
+            text: "text";
         }>;
         template: z.ZodOptional<z.ZodString>;
         inContext: z.ZodDefault<z.ZodBoolean>;
@@ -234,7 +218,7 @@ export declare const workflowDefinitionSchema: z.ZodObject<{
     id: z.ZodPipe<z.ZodString, z.ZodTransform<WorkflowId, string>>;
     name: z.ZodString;
     revision: z.ZodNumber;
-    nodes: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+    nodes: z.ZodPreprocess<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
         position: z.ZodOptional<z.ZodObject<{
@@ -251,20 +235,12 @@ export declare const workflowDefinitionSchema: z.ZodObject<{
         }, z.core.$strict>>;
         kind: z.ZodLiteral<"agent">;
         systemPrompt: z.ZodString;
-        provider: z.ZodOptional<z.ZodString>;
         model: z.ZodOptional<z.ZodString>;
-        toolFilter: z.ZodOptional<z.ZodObject<{
-            allow: z.ZodOptional<z.ZodArray<z.ZodString>>;
-            deny: z.ZodOptional<z.ZodArray<z.ZodString>>;
-        }, z.core.$strict>>;
-        permissionPreset: z.ZodOptional<z.ZodString>;
-        contextBudgetTokens: z.ZodOptional<z.ZodNumber>;
-        retry: z.ZodObject<{
-            maxAttempts: z.ZodNumber;
-            backoffMs: z.ZodNumber;
-            fallbackModel: z.ZodOptional<z.ZodString>;
-        }, z.core.$strict>;
-        timeoutMs: z.ZodOptional<z.ZodNumber>;
+        permissionPreset: z.ZodOptional<z.ZodEnum<{
+            "read-only": "read-only";
+            "workspace-write": "workspace-write";
+            "danger-full-access": "danger-full-access";
+        }>>;
         hitlEnabled: z.ZodBoolean;
     }, z.core.$strict>, z.ZodObject<{
         id: z.ZodString;
@@ -324,7 +300,7 @@ export declare const workflowDefinitionSchema: z.ZodObject<{
         }, z.core.$strict>>;
         kind: z.ZodLiteral<"note">;
         text: z.ZodString;
-    }, z.core.$strict>], "kind">>;
+    }, z.core.$strict>], "kind">>>;
     edges: z.ZodArray<z.ZodObject<{
         id: z.ZodString;
         from: z.ZodString;
@@ -332,9 +308,9 @@ export declare const workflowDefinitionSchema: z.ZodObject<{
         to: z.ZodString;
         toHandle: z.ZodOptional<z.ZodLiteral<"back">>;
         format: z.ZodEnum<{
-            text: "text";
             json: "json";
             md: "md";
+            text: "text";
         }>;
         template: z.ZodOptional<z.ZodString>;
         inContext: z.ZodDefault<z.ZodBoolean>;
@@ -347,7 +323,7 @@ export declare const workflowRecordSchema: z.ZodObject<{
         id: z.ZodPipe<z.ZodString, z.ZodTransform<WorkflowId, string>>;
         name: z.ZodString;
         revision: z.ZodNumber;
-        nodes: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+        nodes: z.ZodPreprocess<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
             id: z.ZodString;
             name: z.ZodString;
             position: z.ZodOptional<z.ZodObject<{
@@ -364,20 +340,12 @@ export declare const workflowRecordSchema: z.ZodObject<{
             }, z.core.$strict>>;
             kind: z.ZodLiteral<"agent">;
             systemPrompt: z.ZodString;
-            provider: z.ZodOptional<z.ZodString>;
             model: z.ZodOptional<z.ZodString>;
-            toolFilter: z.ZodOptional<z.ZodObject<{
-                allow: z.ZodOptional<z.ZodArray<z.ZodString>>;
-                deny: z.ZodOptional<z.ZodArray<z.ZodString>>;
-            }, z.core.$strict>>;
-            permissionPreset: z.ZodOptional<z.ZodString>;
-            contextBudgetTokens: z.ZodOptional<z.ZodNumber>;
-            retry: z.ZodObject<{
-                maxAttempts: z.ZodNumber;
-                backoffMs: z.ZodNumber;
-                fallbackModel: z.ZodOptional<z.ZodString>;
-            }, z.core.$strict>;
-            timeoutMs: z.ZodOptional<z.ZodNumber>;
+            permissionPreset: z.ZodOptional<z.ZodEnum<{
+                "read-only": "read-only";
+                "workspace-write": "workspace-write";
+                "danger-full-access": "danger-full-access";
+            }>>;
             hitlEnabled: z.ZodBoolean;
         }, z.core.$strict>, z.ZodObject<{
             id: z.ZodString;
@@ -437,7 +405,7 @@ export declare const workflowRecordSchema: z.ZodObject<{
             }, z.core.$strict>>;
             kind: z.ZodLiteral<"note">;
             text: z.ZodString;
-        }, z.core.$strict>], "kind">>;
+        }, z.core.$strict>], "kind">>>;
         edges: z.ZodArray<z.ZodObject<{
             id: z.ZodString;
             from: z.ZodString;
@@ -445,9 +413,9 @@ export declare const workflowRecordSchema: z.ZodObject<{
             to: z.ZodString;
             toHandle: z.ZodOptional<z.ZodLiteral<"back">>;
             format: z.ZodEnum<{
-                text: "text";
                 json: "json";
                 md: "md";
+                text: "text";
             }>;
             template: z.ZodOptional<z.ZodString>;
             inContext: z.ZodDefault<z.ZodBoolean>;
@@ -511,20 +479,8 @@ export declare const agentLibrarySpecSchema: z.ZodType<AgentLibrarySpec>;
 export interface AgentLibrarySpec {
     readonly kind: 'agent';
     readonly systemPrompt: string;
-    readonly provider?: string;
     readonly model?: string;
-    readonly toolFilter?: {
-        readonly allow?: readonly string[];
-        readonly deny?: readonly string[];
-    };
-    readonly permissionPreset?: string;
-    readonly contextBudgetTokens?: number;
-    readonly retry: {
-        maxAttempts: number;
-        backoffMs: number;
-        fallbackModel?: string;
-    };
-    readonly timeoutMs?: number;
+    readonly permissionPreset?: 'read-only' | 'workspace-write' | 'danger-full-access';
     readonly hitlEnabled: boolean;
 }
 /** One durable library-agent record; the table key is the agent id. */
@@ -559,25 +515,13 @@ export declare const agentMultiDomain: {
                     name: string;
                     kind: "agent";
                     systemPrompt: string;
-                    retry: {
-                        maxAttempts: number;
-                        backoffMs: number;
-                        fallbackModel?: string | undefined;
-                    };
                     hitlEnabled: boolean;
                     position?: {
                         x: number;
                         y: number;
                     } | undefined;
-                    provider?: string | undefined;
                     model?: string | undefined;
-                    toolFilter?: {
-                        allow?: string[] | undefined;
-                        deny?: string[] | undefined;
-                    } | undefined;
-                    permissionPreset?: string | undefined;
-                    contextBudgetTokens?: number | undefined;
-                    timeoutMs?: number | undefined;
+                    permissionPreset?: "read-only" | "workspace-write" | "danger-full-access" | undefined;
                 } | {
                     id: string;
                     name: string;
@@ -633,7 +577,7 @@ export declare const agentMultiDomain: {
                     id: string;
                     from: string;
                     to: string;
-                    format: "text" | "json" | "md";
+                    format: "json" | "md" | "text";
                     inContext: boolean;
                     fromHandle?: string | undefined;
                     toHandle?: "back" | undefined;
@@ -694,4 +638,3 @@ export type WorkflowDefinition = z.infer<typeof workflowDefinitionSchema>;
 /** Editor payload: definition content without server-assigned identity. */
 export type WorkflowDraft = z.infer<typeof workflowDraftSchema>;
 export {};
-//# sourceMappingURL=domain.d.ts.map

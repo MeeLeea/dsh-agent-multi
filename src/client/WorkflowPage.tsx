@@ -18,7 +18,7 @@ import type {
   AgentLibrarySpec, CreateLibraryAgentResult, SaveLibraryAgentResult, CreateTriggerRequest, CreateTriggerResult,
   ListTriggersResult, SetTriggerEnabledResult, DeleteTriggerResult,
   ModelCatalog,
-} from '@deepseek-ai/dsh-experimental-agent-multi/types'
+} from 'dsh-agent-multi/types'
 import { RunPanel, type RunTarget } from './RunPanel.tsx'
 import { WorkflowEditor, type EditorTarget } from './WorkflowEditor.tsx'
 import css from './WorkflowPage.module.css'
@@ -68,7 +68,7 @@ function newDraft(name: string): WorkflowDraft {
       { kind: 'input', id: 'input', name: 'Input', position: { x: 60, y: 200 } },
       {
         kind: 'agent', id: 'agent1', name: 'Agent 1', position: { x: 360, y: 200 },
-        systemPrompt: '', retry: { maxAttempts: 1, backoffMs: 0 }, hitlEnabled: false,
+        systemPrompt: '', hitlEnabled: false,
       },
       { kind: 'output', id: 'output', name: 'Output', position: { x: 660, y: 200 } },
     ],

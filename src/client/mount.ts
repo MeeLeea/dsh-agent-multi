@@ -3,7 +3,8 @@
  * its sidebar row, and the panel icon on the Web client.
  */
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
-import type {} from '@deepseek-ai/dsh-experimental-agent-multi/remote'
+import type {} from '@deepseek-ai/dsh-api-gateway/client'
+import type {} from 'dsh-agent-multi/remote'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-ui-sidebar/client'

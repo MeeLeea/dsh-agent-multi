@@ -6,4 +6,3 @@ import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots';
  * @returns decorative branch icon.
  */
 export declare function AgentMultiIcon({ size }: PropsRuntime<'sidebar.panellist'>): import("react").JSX.Element;
-//# sourceMappingURL=AgentMultiIcon.d.ts.map

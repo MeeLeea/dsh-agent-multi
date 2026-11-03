@@ -29,7 +29,7 @@ import type {
   DeleteWorkflowResult, DryRunNodeRequest, DryRunNodeResult, ExportWorkflowRequest, ExportWorkflowResult,
   GetRunRequest, GetRunResult, GetWorkflowRequest,
   GetWorkflowResult, ImportWorkflowRequest, ImportWorkflowResult, ListRunsRequest,
-  ListRunsResult, ListTriggersRequest, ListTriggersResult, ModelCatalog, ModelCatalogModel, ModelCatalogProvider,
+  ListRunsResult, ListTriggersRequest, ListTriggersResult, ModelCatalog,
   ResumeRunRequest, ResumeRunResult, RunStatus, RunView, SaveLibraryAgentRequest,
   SaveLibraryAgentResult, SaveWorkflowRequest, SaveWorkflowResult,
   SetTriggerEnabledRequest, SetTriggerEnabledResult, StartRunRequest, StartRunResult, ValidateWorkflowRequest, ValidateWorkflowResult, WorkflowSummary,
@@ -790,10 +790,11 @@ export type {
   SaveLibraryAgentRequest, SaveLibraryAgentResult, SaveWorkflowRequest, SaveWorkflowResult,
   SetTriggerEnabledRequest, SetTriggerEnabledResult, StartRunRequest, StartRunResult, TriggerEntry,
   ValidateWorkflowRequest, ValidateWorkflowResult, WorkflowExportDocument, WorkflowSummary, WorkflowValidationError,
+  AgentMultiJsonValue,
 } from './contract.ts'
 export type { AgentMultiErrorClass } from './engine/events.ts'
 export type {
-  AgentLibraryEntry, AgentLibraryId, AgentLibrarySpec, TriggerTiming,
+  AgentLibraryEntry, AgentLibraryId, AgentLibrarySpec, AgentNodeSpec, TriggerTiming,
   EdgeFormat, EdgeSpec, NodeKind, NodeSpec, WorkflowDefinition, WorkflowDraft, WorkflowId,
 } from './types.ts'
 

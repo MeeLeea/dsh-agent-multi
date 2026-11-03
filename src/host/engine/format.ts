@@ -102,7 +102,7 @@ export function trimToBudget(
 
 /**
  * Assemble the prompt blocks for an agent node from its direct predecessors and
- * the user input, applying edge formats, templates, and the context budget.
+ * the user input, applying edge formats and templates.
  *
  * Direct predecessors are rendered in edge order. An edge with `inContext: false`
  * contributes nothing to the prompt but still records its payload in the ledger.
@@ -122,6 +122,6 @@ export function assembleAgentPrompt(
     const body = edge.template !== undefined ? applyEdgeTemplate(edge.template, rendered, ledger) : rendered
     predecessorSections.push({ label: `## ${edge.from} (${edge.format})`, body })
   }
-  const { text } = trimToBudget(node.systemPrompt, userInput, predecessorSections, node.contextBudgetTokens)
+  const { text } = trimToBudget(node.systemPrompt, userInput, predecessorSections)
   return [{ type: 'text', text }]
 }

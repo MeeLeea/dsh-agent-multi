@@ -2,7 +2,7 @@
  * Web client entry of the agent-multi workflow UI: mounts the generated
  * agent-multi Remote contribution and registers the panel surfaces.
  */
-import agentMultiRemote from '@deepseek-ai/dsh-experimental-agent-multi/remote'
+import agentMultiRemote from 'dsh-agent-multi/remote'
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import { mount } from './mount.ts'
 

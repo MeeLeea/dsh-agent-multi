@@ -15,4 +15,3 @@ import type { WorkflowValidationError } from './contract.ts';
  * @returns issues in no guaranteed order; empty means the draft is runnable.
  */
 export declare function validateWorkflow(draft: WorkflowDraft): WorkflowValidationError[];
-//# sourceMappingURL=validation.d.ts.map

@@ -44,4 +44,3 @@ export declare class TriggerRuntime {
     private drive;
     private resolveOccurrence;
 }
-//# sourceMappingURL=trigger-runtime.d.ts.map

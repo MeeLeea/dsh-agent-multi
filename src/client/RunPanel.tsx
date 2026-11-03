@@ -14,7 +14,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
 import type {
   RunHitlView, RunNodeView, RunStatus, RunSummary, RunView, WorkflowDefinition, WorkflowId,
   AgentMultiErrorClass, AgentMultiJsonValue, TriggerEntry, TriggerTiming,
-} from '@deepseek-ai/dsh-experimental-agent-multi/types'
+} from 'dsh-agent-multi/types'
 import type { AgentMultiInjected } from './WorkflowPage.tsx'
 import type { AgentMultiKey } from './locales.ts'
 import css from './WorkflowEditor.module.css'

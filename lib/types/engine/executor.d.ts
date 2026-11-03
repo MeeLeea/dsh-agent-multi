@@ -49,11 +49,10 @@ export interface NodeExecutionDeps {
      */
     readonly onNodeUsage?: (usage: NodeUsagePayload) => void;
 }
-/** Classify a settled subagent result into the retry decision vocabulary. */
+/** Classify a settled subagent result into the failure vocabulary. */
 export declare function classifyStopReason(result: SubagentResult, timedOut: boolean): AgentMultiErrorClass | 'cancelled';
 /**
- * Run one agent node to a terminal outcome: success, exhausted retries, or
- * non-retryable failure. Every attempt is journaled.
+ * Run one agent node to a terminal outcome: success, cancellation, or
+ * failure. The single attempt is journaled.
  */
 export declare function executeAgentNode(deps: NodeExecutionDeps, node: AgentNodeSpec, inEdges: readonly EdgeSpec[]): Promise<NodeExecutionOutcome>;
-//# sourceMappingURL=executor.d.ts.map

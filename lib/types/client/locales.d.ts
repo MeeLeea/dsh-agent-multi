@@ -35,17 +35,14 @@ declare const zh: {
     readonly kindNote: "备注";
     readonly nodeName: "名称";
     readonly nodeSystemPrompt: "系统提示词";
-    readonly nodeProvider: "提供商";
     readonly nodeModel: "模型";
     readonly nodeModelPlaceholder: "留空继承会话默认";
     readonly catalogFailed: "目录加载失败，可手填";
-    readonly nodeToolAllow: "允许工具（每行一个）";
-    readonly nodeToolDeny: "禁用工具（每行一个）";
-    readonly nodeContextBudget: "上下文预算（tokens）";
-    readonly nodeRetry: "重试次数";
-    readonly nodeBackoff: "重试间隔（ms）";
-    readonly nodeFallbackModel: "备用模型";
-    readonly nodeTimeout: "超时（ms）";
+    readonly nodePermission: "权限";
+    readonly permissionInherit: "继承宿主默认";
+    readonly permissionReadOnly: "只读";
+    readonly permissionWorkspaceWrite: "可写工作区";
+    readonly permissionFullAccess: "完全访问";
     readonly nodeHitl: "允许人工介入";
     readonly nodeCases: "分支（每行一个）";
     readonly nodeStrategy: "汇聚策略";
@@ -168,17 +165,14 @@ declare const en: {
     readonly kindNote: "Note";
     readonly nodeName: "Name";
     readonly nodeSystemPrompt: "System prompt";
-    readonly nodeProvider: "Provider";
     readonly nodeModel: "Model";
     readonly nodeModelPlaceholder: "Empty inherits the session default";
     readonly catalogFailed: "Catalog load failed; type manually";
-    readonly nodeToolAllow: "Allowed tools (one per line)";
-    readonly nodeToolDeny: "Denied tools (one per line)";
-    readonly nodeContextBudget: "Context budget (tokens)";
-    readonly nodeRetry: "Retry attempts";
-    readonly nodeBackoff: "Backoff (ms)";
-    readonly nodeFallbackModel: "Fallback model";
-    readonly nodeTimeout: "Timeout (ms)";
+    readonly nodePermission: "Permission";
+    readonly permissionInherit: "Inherit host default";
+    readonly permissionReadOnly: "Read-only";
+    readonly permissionWorkspaceWrite: "Workspace write";
+    readonly permissionFullAccess: "Full access";
     readonly nodeHitl: "Allow human interaction";
     readonly nodeCases: "Cases (one per line)";
     readonly nodeStrategy: "Join strategy";
@@ -273,4 +267,3 @@ declare const en: {
 /** Bilingual keys of the agent-multi namespace. */
 export type AgentMultiKey = keyof typeof zh;
 export { en, zh };
-//# sourceMappingURL=locales.d.ts.map

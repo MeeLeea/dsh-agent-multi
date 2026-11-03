@@ -379,20 +379,23 @@ export interface ListTriggersRequest {
 export interface ListTriggersResult {
     readonly triggers: readonly TriggerEntry[];
 }
-/** One selectable provider route in the host model catalog. */
+/** One selectable provider route from the host model catalog. */
 export interface ModelCatalogProvider {
     readonly id: string;
     readonly name: string;
 }
-/** One selectable model entry in the host model catalog. */
+/** One selectable model from the host model catalog. */
 export interface ModelCatalogModel {
     readonly provider: string;
     readonly id: string;
     readonly name: string;
 }
-/** Host model catalog: registered providers plus their models, for creation-form dropdowns. */
+/**
+ * Model-catalog result: registered providers and every registered adapter's
+ * models. A provider whose `listModels` call fails contributes no models
+ * instead of failing the whole catalog.
+ */
 export interface ModelCatalog {
     readonly providers: readonly ModelCatalogProvider[];
     readonly models: readonly ModelCatalogModel[];
 }
-//# sourceMappingURL=contract.d.ts.map

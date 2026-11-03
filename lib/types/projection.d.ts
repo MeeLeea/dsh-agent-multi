@@ -116,4 +116,3 @@ export declare const agentMultiProjectionDefinition: {
     };
 };
 export {};
-//# sourceMappingURL=projection.d.ts.map

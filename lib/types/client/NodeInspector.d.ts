@@ -1,5 +1,5 @@
 import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots';
-import type { AgentNodeSpec, AgentLibrarySpec, DryRunNodeResult, NodeSpec, ModelCatalog } from '@deepseek-ai/dsh-experimental-agent-multi/types';
+import type { AgentNodeSpec, AgentLibrarySpec, DryRunNodeResult, ModelCatalog, NodeSpec } from 'dsh-agent-multi/types';
 /** Remote action surface the inspector needs for the dry-run probe. */
 export interface DryRunActions {
     readonly dryRunNode: (request: {
@@ -20,7 +20,7 @@ export interface LibraryActions {
         ok: boolean;
     }>;
 }
-/** Remote action surface the inspector needs for the host model catalog. */
+/** Catalog access the inspector needs for provider/model dropdowns. */
 export interface CatalogActions {
     readonly load: () => Promise<{
         ok: boolean;
@@ -35,8 +35,8 @@ export interface NodeInspectorProps {
     readonly onDelete: () => void;
     readonly dryRun?: DryRunActions;
     readonly library?: LibraryActions;
+    readonly catalog?: CatalogActions | undefined;
     readonly labels: PropsRuntime<'main'> & PropsLocale<'agent-multi'>;
-    readonly catalog?: CatalogActions;
 }
 /**
  * Render the configuration form for one node.
@@ -44,4 +44,3 @@ export interface NodeInspectorProps {
  * @returns the inspector form.
  */
 export declare function NodeInspector(props: NodeInspectorProps): import("react").JSX.Element;
-//# sourceMappingURL=NodeInspector.d.ts.map

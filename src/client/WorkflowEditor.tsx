@@ -16,7 +16,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
 import type {
   EdgeFormat, EdgeSpec, NodeKind, NodeSpec, WorkflowDefinition, WorkflowDraft, WorkflowId, WorkflowValidationError,
   AgentLibraryEntry, AgentLibrarySpec, ModelCatalog,
-} from '@deepseek-ai/dsh-experimental-agent-multi/types'
+} from 'dsh-agent-multi/types'
 import { NodeInspector } from './NodeInspector.tsx'
 import type { AgentMultiInjected } from './WorkflowPage.tsx'
 import type { AgentMultiKey } from './locales.ts'
@@ -128,6 +128,7 @@ export function WorkflowEditor(props: {
   const [dirty, setDirty] = useState(false)
   const [library, setLibrary] = useState<readonly AgentLibraryEntry[]>([])
   const [catalog, setCatalog] = useState<ModelCatalog | null>(null)
+  const [catalogFailed, setCatalogFailed] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -143,7 +144,8 @@ export function WorkflowEditor(props: {
     void listModelCatalog().then(result => {
       if (cancelled) return
       if (result.ok) setCatalog(result.value)
-    })
+      else setCatalogFailed(true)
+    }).catch(() => { if (!cancelled) setCatalogFailed(true) })
     return () => { cancelled = true }
   }, [listModelCatalog])
 
@@ -183,7 +185,7 @@ export function WorkflowEditor(props: {
     const id = `${kind}${index}`
     const base = { id, name: `${kind} ${index}`, position: { x: 120 + (index % 4) * 220, y: 100 + Math.floor(index / 4) * 180 } }
     const spec: NodeSpec = kind === 'input' ? { kind, ...base }
-      : kind === 'agent' ? { kind, ...base, systemPrompt: '', retry: { maxAttempts: 1, backoffMs: 0 }, hitlEnabled: false }
+      : kind === 'agent' ? { kind, ...base, systemPrompt: '', hitlEnabled: false }
         : kind === 'router' ? { kind, ...base, cases: ['yes'] }
           : kind === 'join' ? { kind, ...base, strategy: 'all' }
             : kind === 'loop' ? { kind, ...base, mode: 'count', count: 2, maxIters: 8, collect: true }
@@ -322,9 +324,13 @@ export function WorkflowEditor(props: {
             onDelete={() => { deleteNode(selectedNode.id) }}
             dryRun={actions}
             library={actions}
-            catalog={catalog === null ? undefined : {
-              load: () => Promise.resolve({ ok: true, value: catalog }),
-            }}
+            catalog={catalog === null
+              ? { load: () => Promise.resolve(catalogFailed
+                  ? { ok: false, message: 'catalog unavailable' }
+                  : { ok: false, message: 'catalog not loaded yet' }) }
+              : {
+                load: () => Promise.resolve({ ok: true, value: catalog }),
+              }}
             labels={actions}
           />
           : selectedEdge !== undefined
@@ -394,31 +400,16 @@ function stripTemplate(spec: EdgeSpec): EdgeSpec {
 
 /** Mutable agent-node fields from a library entry, with readonly arrays copied. */
 function libraryNodeFields(spec: AgentLibrarySpec): {
-  kind: 'agent', systemPrompt: string, retry: { maxAttempts: number, backoffMs: number, fallbackModel?: string },
-  provider?: string, model?: string,
-  toolFilter?: { allow?: string[], deny?: string[] },
-  permissionPreset?: string, contextBudgetTokens?: number, timeoutMs?: number, hitlEnabled?: boolean,
+  kind: 'agent', systemPrompt: string,
+  model?: string,
+  permissionPreset?: 'read-only' | 'workspace-write' | 'danger-full-access', hitlEnabled?: boolean,
 } {
-  const { kind, systemPrompt, provider, model, toolFilter, permissionPreset, contextBudgetTokens, timeoutMs, hitlEnabled } = spec
-  const { maxAttempts, backoffMs, fallbackModel } = spec.retry
+  const { kind, systemPrompt, model, permissionPreset, hitlEnabled } = spec
   return {
     kind,
     systemPrompt,
-    retry: {
-      maxAttempts, backoffMs,
-      ...(fallbackModel === undefined ? {} : { fallbackModel }),
-    },
-    ...(provider === undefined ? {} : { provider }),
     ...(model === undefined ? {} : { model }),
-    ...(toolFilter === undefined ? {} : {
-      toolFilter: {
-        ...(toolFilter.allow === undefined ? {} : { allow: [...toolFilter.allow] }),
-        ...(toolFilter.deny === undefined ? {} : { deny: [...toolFilter.deny] }),
-      },
-    }),
     ...(permissionPreset === undefined ? {} : { permissionPreset }),
-    ...(contextBudgetTokens === undefined ? {} : { contextBudgetTokens }),
-    ...(timeoutMs === undefined ? {} : { timeoutMs }),
     ...(hitlEnabled === undefined ? {} : { hitlEnabled }),
   }
 }

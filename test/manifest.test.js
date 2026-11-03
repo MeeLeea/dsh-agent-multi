@@ -13,10 +13,12 @@ test('package manifest shape', () => {
   assert.equal(pkg.type, 'module');
   assert.equal(pkg.dsh.bundle.patch, './cordis.patch.yml');
   assert.equal(pkg.dsh.client.platform, 'web');
-  assert.equal(pkg.exports['.'], './lib/index.js');
+  assert.equal(pkg.exports['.'].default, './lib/index.js');
   assert.equal(pkg.exports['./client'].default, './lib/client.js');
-  assert.equal(pkg.exports['./typert'], './lib/typert.host.js');
-  assert.equal(pkg.exports['./remote'], './lib/typert.remote-client.js');
+  assert.equal(pkg.exports['./typert'].default, './lib/typert.host.js');
+  assert.equal(pkg.exports['./typert'].types, './lib/typert.host.d.ts');
+  assert.equal(pkg.exports['./remote'].default, './lib/typert.remote-client.js');
+  assert.equal(pkg.exports['./remote'].types, './lib/typert.remote-client.d.ts');
   assert.deepEqual(pkg.dsh.client.inject, [
     '@deepseek-ai/dsh-api-remotes',
     '@deepseek-ai/dsh-client-locale',
@@ -71,9 +73,10 @@ test('client bundle manifest names the standalone package', () => {
 
 test('host bundle externals are declared as peer dependencies', () => {
   const src = readFileSync(join(root, 'lib/index.js'), 'utf8');
-  const imports = [...src.matchAll(/from\s*'(@deepseek-ai\/[^']+|zod|@deepseek-ai\/schemastery)'/g)]
+  const imports = [...src.matchAll(/from\s*["'](@deepseek-ai\/[^"']+|zod|node:[^"']+)["']/g)]
     .map((m) => m[1]);
-  const externals = [...new Set(imports)];
+  const externals = [...new Set(imports)].filter((ext) => !ext.startsWith('node:'));
+  assert.ok(externals.length > 0, 'no external imports found — regex drifted from the bundle shape');
   const peers = new Set(Object.keys(pkg.peerDependencies ?? {}));
   for (const ext of externals) {
     assert.ok(peers.has(ext), `external import '${ext}' missing from peerDependencies`);

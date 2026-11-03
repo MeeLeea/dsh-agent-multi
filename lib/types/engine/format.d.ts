@@ -50,10 +50,9 @@ export declare function trimToBudget(systemPrompt: string, userInput: string, pr
 };
 /**
  * Assemble the prompt blocks for an agent node from its direct predecessors and
- * the user input, applying edge formats, templates, and the context budget.
+ * the user input, applying edge formats and templates.
  *
  * Direct predecessors are rendered in edge order. An edge with `inContext: false`
  * contributes nothing to the prompt but still records its payload in the ledger.
  */
 export declare function assembleAgentPrompt(node: AgentNodeSpec, inEdges: readonly EdgeSpec[], ledger: Ledger, userInput: string): ContentBlock[];
-//# sourceMappingURL=format.d.ts.map

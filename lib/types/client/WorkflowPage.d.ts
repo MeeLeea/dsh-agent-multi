@@ -1,6 +1,6 @@
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots';
 import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol';
-import type { CancelRunResult, CreateWorkflowResult, DeleteWorkflowResult, DryRunNodeResult, GetRunResult, GetWorkflowResult, ListRunsResult, ResumeRunResult, SaveWorkflowRequest, SaveWorkflowResult, StartRunResult, ValidateWorkflowResult, WorkflowDraft, WorkflowId, WorkflowSummary, AgentNodeSpec, ExportWorkflowResult, ImportWorkflowResult, WorkflowExportDocument, AgentLibraryEntry, AgentLibraryId, AgentLibrarySpec, CreateLibraryAgentResult, SaveLibraryAgentResult, CreateTriggerRequest, CreateTriggerResult, ListTriggersResult, SetTriggerEnabledResult, DeleteTriggerResult, ModelCatalog } from '@deepseek-ai/dsh-experimental-agent-multi/types';
+import type { CancelRunResult, CreateWorkflowResult, DeleteWorkflowResult, DryRunNodeResult, GetRunResult, GetWorkflowResult, ListRunsResult, ResumeRunResult, SaveWorkflowRequest, SaveWorkflowResult, StartRunResult, ValidateWorkflowResult, WorkflowDraft, WorkflowId, WorkflowSummary, AgentNodeSpec, ExportWorkflowResult, ImportWorkflowResult, WorkflowExportDocument, AgentLibraryEntry, AgentLibraryId, AgentLibrarySpec, CreateLibraryAgentResult, SaveLibraryAgentResult, CreateTriggerRequest, CreateTriggerResult, ListTriggersResult, SetTriggerEnabledResult, DeleteTriggerResult, ModelCatalog } from 'dsh-agent-multi/types';
 /** Remote-backed actions injected into the panel. */
 export interface AgentMultiInjected {
     readonly createWorkflow: (draft: WorkflowDraft) => Promise<RemoteResult<CreateWorkflowResult>>;
@@ -43,7 +43,6 @@ export interface AgentMultiInjected {
         keepId?: boolean;
     }) => Promise<RemoteResult<ImportWorkflowResult>>;
     readonly listLibraryAgents: () => Promise<RemoteResult<readonly AgentLibraryEntry[]>>;
-    readonly listModelCatalog: () => Promise<RemoteResult<ModelCatalog>>;
     readonly createLibraryAgent: (request: {
         name: string;
         spec: AgentLibrarySpec;
@@ -69,6 +68,7 @@ export interface AgentMultiInjected {
     readonly listTriggers: (request: {
         workflowId?: WorkflowId;
     }) => Promise<RemoteResult<ListTriggersResult>>;
+    readonly listModelCatalog: () => Promise<RemoteResult<ModelCatalog>>;
 }
 /** Root-scoped panel props derived from the framework and injected actions. */
 export type WorkflowPageProps = PropsRuntime<'main'> & InjectFace<AgentMultiInjected> & PropsLocale<'agent-multi'>;
@@ -78,4 +78,3 @@ export type WorkflowPageProps = PropsRuntime<'main'> & InjectFace<AgentMultiInje
  * @returns the panel contents.
  */
 export declare function WorkflowPage(props: WorkflowPageProps): import("react").JSX.Element;
-//# sourceMappingURL=WorkflowPage.d.ts.map

@@ -39,4 +39,3 @@ export interface InstallHitlDeps {
 export declare function installHitlTool(deps: InstallHitlDeps): {
     dispose(): void;
 };
-//# sourceMappingURL=hitl.d.ts.map

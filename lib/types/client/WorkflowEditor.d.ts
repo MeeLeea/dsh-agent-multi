@@ -1,6 +1,6 @@
 import '@xyflow/react/dist/style.css';
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots';
-import type { WorkflowDefinition, WorkflowId } from '@deepseek-ai/dsh-experimental-agent-multi/types';
+import type { WorkflowDefinition, WorkflowId } from 'dsh-agent-multi/types';
 import type { AgentMultiInjected } from './WorkflowPage.tsx';
 /** The definition the editor edits. */
 export interface EditorTarget {
@@ -19,4 +19,3 @@ export declare function WorkflowEditor(props: {
     readonly onExit: () => void;
     readonly onRun: (workflowId: WorkflowId, name: string) => void;
 }): import("react").JSX.Element;
-//# sourceMappingURL=WorkflowEditor.d.ts.map

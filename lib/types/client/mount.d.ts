@@ -21,4 +21,3 @@ export declare const inject: string[];
  * @returns combined disposer.
  */
 export declare function mount(ctx: ClientContext, contribution: TypertRemoteContribution): Promise<() => Promise<void>>;
-//# sourceMappingURL=mount.d.ts.map

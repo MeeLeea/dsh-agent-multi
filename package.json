@@ -6,14 +6,26 @@
   "private": true,
   "main": "./lib/index.js",
   "exports": {
-    ".": "./lib/index.js",
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
     "./client": {
       "types": "./lib/types/client/index.d.ts",
       "default": "./lib/client.js"
     },
-    "./typert": "./lib/typert.host.js",
-    "./remote": "./lib/typert.remote-client.js",
-    "./types": "./lib/types/index.d.ts",
+    "./typert": {
+      "types": "./lib/typert.host.d.ts",
+      "default": "./lib/typert.host.js"
+    },
+    "./remote": {
+      "types": "./lib/typert.remote-client.d.ts",
+      "default": "./lib/typert.remote-client.js"
+    },
+    "./types": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/types/index.js"
+    },
     "./locale/*.json": "./locale/*.json",
     "./package.json": "./package.json"
   },
@@ -32,7 +44,10 @@
     "README.md"
   ],
   "scripts": {
-    "test": "node --test test/"
+    "clean": "node tools/clean-build.mjs",
+    "typert": "node tools/generate-typert.mjs",
+    "build": "node tools/clean-build.mjs && node --max-old-space-size=8192 tools/build.mjs && node tools/run-tests.mjs",
+    "test": "node tools/run-tests.mjs"
   },
   "dsh": {
     "bundle": {
@@ -50,15 +65,50 @@
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.5-alpha.1",
     "@deepseek-ai/dsh-brand": "^0.2.1-alpha.2",
+    "@deepseek-ai/dsh-client-ui-primitives": "^0.2.1-alpha.2",
     "@deepseek-ai/dsh-llm": "^0.2.1-alpha.2",
     "@deepseek-ai/dsh-schedule": "^0.2.1-alpha.2",
     "@deepseek-ai/dsh-session": "^0.2.1-alpha.2",
     "@deepseek-ai/dsh-storage-domain": "^0.2.1-alpha.2",
     "@deepseek-ai/dsh-typert-protocol": "^0.2.1-alpha.2",
-    "@deepseek-ai/dsh-client-ui-primitives": "^0.2.1-alpha.2",
     "@deepseek-ai/schemastery": "^3.18.5-alpha.1",
-    "zod": "^4.6.7",
     "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0"
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "4.0.5",
+    "@deepseek-ai/dsh-api-gateway": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-agent": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-agent-loop": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-brand": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-client-locale": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-client-ui-layout": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-client-ui-primitives": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-client-ui-renderer": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-client-ui-sidebar": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-client-ui-slots": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-llm": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-schedule": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-session": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-session-projection": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-storage-domain": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-subagent": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-typert-generator": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-typert-protocol": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-user-questions": "0.2.1-rc.4",
+    "@deepseek-ai/schemastery": "3.18.5",
+    "@types/node": "^22.20.1",
+    "@types/react": "~18.3.1",
+    "@types/react-dom": "~18.3.0",
+    "@xyflow/react": "^12.12.0",
+    "lightningcss": "^1.33.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsdown": "0.22.2",
+    "typescript": "^6.0.3",
+    "zod": "4.4.3",
+    "zustand": "^5.0.15"
   }
 }

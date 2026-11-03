@@ -4,4 +4,3 @@ import type { TriggerEntry } from './contract.ts';
 export declare function initialTargetOf(timing: TriggerTiming, now: number): string;
 /** Project a stored trigger record into the client view. */
 export declare function triggerEntryOf(record: TriggerRecord): TriggerEntry;
-//# sourceMappingURL=trigger-views.d.ts.map
