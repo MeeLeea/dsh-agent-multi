@@ -16,7 +16,7 @@ DSH 多智能体工作流插件（独立仓库，不在 deepseek-harness monorep
 | `tsconfig.host.json` | 宿主侧编译配置：`src/host/**` + `src/index.ts` → `lib/types/**`（tsc 声明 + JS 镜像） |
 | `tsconfig.client.json` | 客户端编译配置：`src/client/**` → `lib/types/client/**` |
 | `vitest.config.mjs` | vitest 配置：`test/**/*.spec.ts`、node 环境；内置 `agent-multi-lower-decorators` 预转换插件——oxc 不降 TC39 装饰器，对含 `@Remote` 的源文件用 esbuild（es2022 target）降级后才能被 Node 解析 |
-| `.gitignore` | 忽略 `node_modules/`、`.npm-cache/`、`.typert-work/`、`dump-config.txt`、`*.tsbuildinfo`、coverage、日志、编辑器状态等；**有意不忽略 `lib/`**（junction 安装直接加载产物） |
+| `.gitignore` | 忽略 `node_modules/`、`.npm-cache/`、`.typert-work/`、`lib/`、`dump-config.txt`、`*.tsbuildinfo`、coverage、日志、编辑器状态等；`lib/` 为构建产物不跟踪——本机 junction 直接加载磁盘上的产物不受影响，新克隆需先 `npm run build` |
 
 ## `src/` — 源码（唯一权威来源）
 
