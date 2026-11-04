@@ -24,6 +24,7 @@ coverage/
 *.tmp
 .npm-cache/
 .typert-work/
+.typert-probe/
 
 # OS metadata
 .DS_Store
