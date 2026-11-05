@@ -22,6 +22,38 @@
   margin: 0;
 }
 
+/* Top-left navigation tabs: workflows vs run status. */
+.tabs {
+  display: inline-flex;
+  gap: 4px;
+  margin-right: auto;
+}
+
+.tab {
+  padding: 5px 14px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--dsw-alias-label-primary);
+}
+
+.tabActive {
+  padding: 5px 14px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 6px;
+  background: var(--dsw-alias-bg-inset, var(--dsw-alias-bg-base));
+  color: var(--dsw-alias-label-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .error {
   margin: 0;
   padding: 8px 16px;
@@ -113,4 +145,69 @@
   gap: 6px;
   font-size: 13px;
   color: var(--dsw-alias-label-secondary);
+}
+
+/* Activity strip: one chip per still-running run, polled on the list view. */
+.activeStrip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+}
+
+.activeStripTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.activeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 999px;
+  background: var(--dsw-alias-bg-base);
+  color: var(--dsw-alias-label-primary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.activeChip:hover {
+  border-color: var(--dsw-alias-border-l3);
+}
+
+.activeChipMeta {
+  color: var(--dsw-alias-label-secondary);
+  font-size: 11px;
+}
+
+.activeChipHitl {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Pulsing dot marking a live run, on chips and on workflow rows. */
+@keyframes agentMultiRunDot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.runDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dsw-alias-label-primary);
+  animation: agentMultiRunDot 1.4s ease-in-out infinite;
+}
+
+.rowRunning {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
 }

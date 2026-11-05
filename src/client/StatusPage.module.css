@@ -1,0 +1,156 @@
+/* agent-multi status page — tracked-run list plus the live status canvas. */
+
+.statusBody {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.statusList {
+  width: 260px;
+  flex: none;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-right: 1px solid var(--dsw-alias-border-l1);
+}
+
+.statusEmpty {
+  margin: 0;
+  padding: 8px 4px;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 13px;
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 8px;
+  background: var(--dsw-alias-bg-base);
+  cursor: pointer;
+  text-align: left;
+}
+
+.statusRow:hover {
+  border-color: var(--dsw-alias-border-l3);
+}
+
+.statusRowSelected {
+  border-color: var(--dsw-alias-border-l4);
+}
+
+.statusRowText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.statusRowName {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--dsw-alias-label-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusRowSession {
+  font-size: 12px;
+  color: var(--dsw-alias-label-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Green = the run is live; yellow = it has settled (done/failed/cancelled). */
+.stateDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.stateDotActive {
+  background: #2e9e5b;
+  animation: agentMultiStatusDot 1.4s ease-in-out infinite;
+}
+
+.stateDotIdle {
+  background: #f0a300;
+}
+
+@keyframes agentMultiStatusDot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.statusCanvas {
+  flex: 1;
+  min-width: 0;
+  background: var(--dsw-alias-bg-base);
+}
+
+/* Status-canvas node card, mirroring the editor card's shape. */
+.card {
+  min-width: 140px;
+  max-width: 200px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--dsw-alias-border-l3);
+  background: var(--dsw-alias-bg-base);
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cardKind {
+  color: var(--dsw-alias-label-secondary);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cardName {
+  font-weight: 600;
+  font-size: 13px;
+  word-break: break-all;
+  color: var(--dsw-alias-label-primary);
+}
+
+.backHandle {
+  background: var(--dsw-alias-label-secondary);
+}
+
+/* Node state rings: green normal, red failed, amber waiting for a human. */
+.ringRunning {
+  border-color: #2e9e5b;
+  box-shadow: 0 0 0 1px #2e9e5b;
+  animation: agentMultiRingPulse 1.4s ease-in-out infinite;
+}
+
+.ringCompleted {
+  border-color: #2e9e5b;
+  box-shadow: 0 0 0 1px #2e9e5b;
+}
+
+.ringFailed {
+  border-color: #d0342c;
+  box-shadow: 0 0 0 1px #d0342c;
+}
+
+.ringHitl {
+  border-color: #f0a300;
+  box-shadow: 0 0 0 1px #f0a300;
+}
+
+@keyframes agentMultiRingPulse {
+  0%, 100% { box-shadow: 0 0 0 1px #2e9e5b; }
+  50% { box-shadow: 0 0 0 3px rgba(46, 158, 91, 0.35); }
+}

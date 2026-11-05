@@ -23,6 +23,8 @@ test('package manifest shape', () => {
     '@deepseek-ai/dsh-api-remotes',
     '@deepseek-ai/dsh-client-locale',
     '@deepseek-ai/dsh-client-ui-renderer',
+    '@deepseek-ai/dsh-api-session-controller',
+    '@deepseek-ai/dsh-api-workspace-controller',
   ]);
 });
 

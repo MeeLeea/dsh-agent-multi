@@ -3,7 +3,7 @@
  * agent-multi journal — status, per-node events, final output, and the
  * terminal failure with resume/cancel controls.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Background, Handle, MarkerType, Position, ReactFlow, type Edge, type Node, type NodeProps } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import {
@@ -23,6 +23,8 @@ import css from './WorkflowEditor.module.css'
 export interface RunTarget {
   readonly workflowId: WorkflowId
   readonly name: string
+  /** Open the panel directly on this run instead of the start form. */
+  readonly runId?: string
 }
 
 const POLL_INTERVAL_MS = 1000
@@ -52,6 +54,12 @@ export function RunPanel(props: {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [definition, setDefinition] = useState<WorkflowDefinition | null>(null)
+  // Workspace the next run lands in: undefined keeps the automatic
+  // most-recently-active choice made by the action binding.
+  const [workspaceId, setWorkspaceId] = useState<string | undefined>(undefined)
+  const workspaceSnap = useSyncExternalStore(actions.workspaces.subscribe, actions.workspaces.getSnapshot)
+  const autoWorkspaceId = workspaceSnap.phase === 'ready' ? actions.defaultWorkspaceId() : undefined
+  const autoWorkspace = workspaceSnap.items.find(item => item.workspaceId === autoWorkspaceId)
   const refreshRef = useRef<(runId: string) => Promise<void>>()
 
   useEffect(() => {
@@ -68,6 +76,11 @@ export function RunPanel(props: {
     if (result.ok && result.value.outcome === 'found') setRun(result.value.run)
   }, [getRun])
   refreshRef.current = refresh
+
+  // A run linked from the activity strip opens straight into its view.
+  useEffect(() => {
+    if (target.runId !== undefined) void refresh(target.runId)
+  }, [target.runId, refresh])
 
   const refreshHistory = useCallback(async () => {
     const result = await listRuns({ workflowId: target.workflowId })
@@ -91,7 +104,11 @@ export function RunPanel(props: {
     if (input.trim() === '' || busy) return
     setBusy(true)
     try {
-      const result = await startRun({ workflowId: target.workflowId, input })
+      const result = await startRun({
+        workflowId: target.workflowId,
+        input,
+        ...(workspaceId === undefined ? {} : { workspaceId }),
+      })
       if (!result.ok) { setError(t('runMissing')); return }
       const value = result.value
       if (value.outcome === 'started') {
@@ -103,7 +120,7 @@ export function RunPanel(props: {
     } finally {
       setBusy(false)
     }
-  }, [input, busy, startRun, target.workflowId, refresh, t])
+  }, [input, busy, startRun, target.workflowId, workspaceId, refresh, t])
 
   const onResume = useCallback(async () => {
     if (run === null || busy) return
@@ -148,6 +165,21 @@ export function RunPanel(props: {
     <TriggerPanel workflowId={target.workflowId} actions={actions} />
     {run === null
       ? <div className={css.runBar}>
+        {workspaceSnap.items.length > 0 && <label className={css.field}>
+          <span className={css.fieldLabel}>{t('runWorkspace')}</span>
+          <select
+            className={css.select}
+            value={workspaceId ?? ''}
+            onChange={event => { setWorkspaceId(event.target.value === '' ? undefined : event.target.value) }}
+          >
+            <option value=''>
+              {t('runWorkspaceAuto')}{autoWorkspace === undefined ? '' : ` · ${autoWorkspace.title ?? autoWorkspace.path}`}
+            </option>
+            {workspaceSnap.items.map(item => <option key={item.workspaceId} value={item.workspaceId}>
+              {item.title ?? item.path}
+            </option>)}
+          </select>
+        </label>}
         <textarea className={css.runInput} rows={3} value={input} placeholder={t('runInput')}
           onChange={event => { setInput(event.target.value) }} />
         <Button variant='primary' disabled={busy} onClick={() => { void onStart() }}>{t('runStart')}</Button>

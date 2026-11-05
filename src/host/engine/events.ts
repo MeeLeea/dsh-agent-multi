@@ -66,6 +66,25 @@ export interface NodeDeltaPayload {
   delta: string
 }
 
+/**
+ * One mirrored node utterance appended to the run session so the run root's
+ * Chat view reads as a group conversation: the node's input prompt and its
+ * final output (or failure text) rendered with a node-name label. This is a
+ * pure presentation mirror — the projection reducer ignores it and the Run
+ * panel filters it out of the technical event stream.
+ */
+export interface NodeMessagePayload {
+  version: 1
+  runId: RunId
+  nodeId: string
+  /** Display label: the node's display name (falling back to its id). */
+  nodeLabel: string
+  /** Which side of the node exchange this utterance mirrors. */
+  role: 'input' | 'output'
+  /** Mirrored text: the assembled prompt for input, the final output or failure message for output. */
+  text: string
+}
+
 /** Disjoint per-node token accounting, mirrored from the child session's `assistant/message` events. */
 export interface NodeUsagePayload {
   /** Uncached input tokens across the node's attempts. */
@@ -150,6 +169,7 @@ declare module '@deepseek-ai/dsh-session/types' {
     'agent-multi/node-start': NodeStartPayload
     'agent-multi/node-input': NodeInputPayload
     'agent-multi/node-delta': NodeDeltaPayload
+    'agent-multi/node-message': NodeMessagePayload
     'agent-multi/node-end': NodeEndPayload
     'agent-multi/node-error': NodeErrorPayload
     'agent-multi/hitl-asked': HitlAskedPayload

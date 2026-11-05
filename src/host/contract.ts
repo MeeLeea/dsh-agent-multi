@@ -190,6 +190,12 @@ export interface StartRunRequest {
    * controller default applies.
    */
   readonly tokenBudget?: number
+  /**
+   * Workspace the run session belongs to: its path becomes the session cwd
+   * (inherited by every node activation) and the live session is attached to
+   * it. Absent falls back to the controller's `runRootCwd` config.
+   */
+  readonly workspaceId?: string
 }
 
 /** Start result: the run identity, or `missing` for an unknown workflow. */
@@ -302,6 +308,14 @@ export type GetRunResult =
   | { readonly outcome: 'found'; readonly run: RunView }
   | { readonly outcome: 'missing' }
 
+/** Node progress counts of a run: started agent nodes by status, of all agent nodes. */
+export interface RunProgressView {
+  readonly total: number
+  readonly completed: number
+  readonly running: number
+  readonly failed: number
+}
+
 /** One run-history row: identity plus terminal state, no journal detail. */
 export interface RunSummary {
   readonly runId: string
@@ -309,6 +323,14 @@ export interface RunSummary {
   readonly status: RunStatus
   /** Failure classification and message when the run failed. */
   readonly failure?: RunFailureView
+  /** Epoch milliseconds of the first launch; a resume keeps the original. */
+  readonly startedAt: number
+  /** Agent-node counts projected from the journal, once any node has started. */
+  readonly progress?: RunProgressView
+  /** True while the run waits on a human answer. */
+  readonly hitlOpen?: boolean
+  /** The run session's chat title, once the session-title service names it. */
+  readonly sessionTitle?: string
 }
 
 /** List-runs request: filter by workflow, or all workflows when omitted. */
@@ -325,6 +347,11 @@ export interface ListRunsResult {
 export interface DryRunNodeRequest {
   readonly node: AgentNodeSpec
   readonly input: string
+  /**
+   * Workspace the dry-run session belongs to; same placement semantics as
+   * {@link StartRunRequest.workspaceId}.
+   */
+  readonly workspaceId?: string
 }
 
 /** Dry-run result: the node output or its terminal failure. */

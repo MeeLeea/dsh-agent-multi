@@ -42,6 +42,15 @@ Optional fields (defaults shown) can be set in `cordis.patch.yml`:
 | `runRootModel` | `deepseek-chat` | Model id for the run-root agent |
 | `maxActive` | `8` | Max concurrently running nodes per run |
 | `tokenBudget` | unset | Run-wide billed-token fuse (input + cacheRead + cacheWrite + output) |
+| `runRootCwd` | unset | Working directory for trigger-fired runs; runs started from the Web client use the caller's current workspace instead. When the path is a registered workspace, the run session groups under it in the sidebar |
+
+Run sessions present like ordinary chat sessions: the run session carries the workspace as its cwd (inherited by every node activation), the run input appears as the user message (which also gives the session its automatic title), and the terminal outcome lands as the assistant message — so runs show up in the sidebar, can be opened, and read like a normal conversation. On top of that, every node mirrors its conversation into the same run session as display-only `agent-multi/node-message` events: each node input and its final output appear in the chat as a bubble headed by the node name (input on the user side, output on the agent side), so one run reads as a group chat of its agent nodes without opening the per-node subagent sessions.
+
+The run launcher shows a **Workspace** picker: it defaults to *Auto (most recently active)* — the workspace with the latest session activity — and any explicit choice overrides it for that run. Node dry runs and trigger-fired runs do not prompt; dry runs use the automatic workspace, triggers use `runRootCwd`.
+
+While any run is live, the workflow list shows an **activity strip** under the header: one chip per running run (workflow name, short run id, agent-node progress `x/y`, elapsed time, and a "waiting for human answer" marker when HITL is open), polled every 2 s. Clicking a chip opens that run directly in the run panel; workflows with live runs also show a pulsing dot with the count on their row.
+
+The panel header carries two tabs: **Workflows** (the list, with *New workflow* and *Import workflow*) and **Status**. The status page tracks every run known to the host: the left column lists each run with its workflow name and run-session title — a green dot while it runs, a yellow dot once settled — and the right side renders the selected run's workflow graph on a read-only canvas, ringing the currently running node in pulsing green, completed nodes in green, failed nodes in red, and a node waiting on a human answer in amber.
 
 ## What you get
 

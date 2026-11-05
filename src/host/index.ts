@@ -6,6 +6,7 @@
  */
 
 import { randomUUID } from 'node:crypto'
+import { realpath } from 'node:fs/promises'
 import z from '@deepseek-ai/schemastery'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-agent-loop'
@@ -14,12 +15,14 @@ import { SessionId } from '@deepseek-ai/dsh-session'
 import { Remote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import type { Domain } from '@deepseek-ai/dsh-storage-domain'
 import { brandString } from '@deepseek-ai/dsh-brand'
+import type { WorkspaceId } from '@deepseek-ai/dsh-workspace'
 import { agentMultiDomain, agentLibraryRecordSchema, workflowDraftSchema, workflowRecordSchema, triggerRecordSchema } from './domain.ts'
 import type { TriggerRecord } from './domain.ts'
 import { validateWorkflow } from './validation.ts'
 import { agentMultiProjectionDefinition } from './projection.ts'
 import { executeRun, type RunResult } from './engine/run.ts'
 import type { RunId } from './engine/events.ts'
+import { openRunTurn, closeRunTurn } from './engine/chat-mirror.ts'
 import { TriggerRuntime } from './engine/trigger-runtime.ts'
 import { initialTargetOf, triggerEntryOf } from './trigger-views.ts'
 import type {
@@ -68,6 +71,13 @@ export interface Config {
    * both absent means unbudgeted.
    */
   tokenBudget?: number
+  /**
+   * Working directory for runs nobody hands a workspace to (trigger-fired
+   * runs). Client-initiated runs carry the caller's workspace instead; when
+   * both are absent the run session keeps no cwd and stays out of the
+   * workspace tree once cold.
+   */
+  runRootCwd?: string
 }
 
 /** Sentinel thrown inside a CAS write when the stored revision moved ahead. */
@@ -86,6 +96,10 @@ interface RunRecord {
   readonly execution: Promise<RunResult>
   /** Input of the latest launch; a resume replays it. */
   lastInput: string
+  /** Epoch milliseconds of the first launch; a resume keeps the original. */
+  readonly startedAt: number
+  /** Agent-node count of the launched definition — the progress denominator. */
+  readonly nodeTotal: number
   settled: boolean
   result: RunResult | undefined
 }
@@ -106,6 +120,7 @@ export class AgentMultiController extends TypertRemoteService {
     runRootModel: z.string().default('deepseek-chat'),
     maxActive: z.number().step(1).min(1).default(8),
     tokenBudget: z.number().step(1).min(0),
+    runRootCwd: z.string(),
   })
 
   private readonly ready: Promise<Domain<typeof agentMultiDomain>>
@@ -122,6 +137,7 @@ export class AgentMultiController extends TypertRemoteService {
       runRootModel: config.runRootModel ?? 'deepseek-chat',
       maxActive: config.maxActive ?? 8,
       ...(config.tokenBudget !== undefined ? { tokenBudget: config.tokenBudget } : {}),
+      ...(config.runRootCwd !== undefined ? { runRootCwd: config.runRootCwd } : {}),
     }
     this.ready = ctx.storageDomain.open(agentMultiDomain).then(async (domain) => {
       for (const [key, record] of domain.table('workflows').entries()) {
@@ -424,10 +440,7 @@ export class AgentMultiController extends TypertRemoteService {
   async startRun(request: StartRunRequest): Promise<StartRunResult> {
     const record = (await this.ready).table('workflows').get(request.workflowId)
     if (record === undefined) return { outcome: 'missing' }
-    const runRoot = await this.ctx.agentLoop.create(SessionId(randomUUID()), {
-      provider: this.config.runRootProvider,
-      model: this.config.runRootModel,
-    })
+    const runRoot = await this.createRunRoot(request.workspaceId)
     const budget = request.tokenBudget !== undefined
       ? request.tokenBudget
       : this.config.tokenBudget
@@ -443,10 +456,7 @@ export class AgentMultiController extends TypertRemoteService {
   private async fireTrigger(trigger: TriggerRecord): Promise<string | undefined> {
     const record = (await this.ready).table('workflows').get(trigger.workflowId)
     if (record === undefined) return undefined
-    const runRoot = await this.ctx.agentLoop.create(SessionId(randomUUID()), {
-      provider: this.config.runRootProvider,
-      model: this.config.runRootModel,
-    })
+    const runRoot = await this.createRunRoot()
     const budget = trigger.tokenBudget !== undefined
       ? trigger.tokenBudget
       : this.config.tokenBudget
@@ -603,9 +613,43 @@ export class AgentMultiController extends TypertRemoteService {
       .map(entry => {
         const result = entry.result
         const failure = result?.failure === undefined ? {} : { failure: { ...result.failure } }
-        return { runId: entry.runId, workflowId: entry.workflowId, status: runStatusOf(entry), ...failure }
+        // Progress and HITL come from the live projection so the activity
+        // strip stays a single cheap call.
+        const projected = this.ctx.sessionProjections.stateOf(entry.runRoot.session, 'agentMulti')
+        const states = projected?.run === undefined ? [] : Object.values(projected.run.nodes)
+        const progress = states.length === 0 ? {} : {
+          progress: {
+            total: entry.nodeTotal,
+            completed: states.filter(node => node.status === 'completed').length,
+            running: states.filter(node => node.status === 'running').length,
+            failed: states.filter(node => node.status === 'failed').length,
+          },
+        }
+        const hitlState = projected?.run?.hitl
+        const hitlOpen = hitlState !== undefined && hitlState.answer === undefined ? { hitlOpen: true } : {}
+        const title = this.sessionTitleOf(entry)
+        const sessionTitle = title === undefined ? {} : { sessionTitle: title }
+        return {
+          runId: entry.runId, workflowId: entry.workflowId, status: runStatusOf(entry),
+          startedAt: entry.startedAt, ...progress, ...hitlOpen, ...sessionTitle, ...failure,
+        }
       })
     return { runs }
+  }
+
+  /**
+   * The run session's chat title: the last log-only `session/title` event,
+   * which the title service appends from the mirrored run-input message.
+   * @param entry - The run whose session journal to scan.
+   */
+  private sessionTitleOf(entry: RunRecord): string | undefined {
+    // Widen past the locally visible event map: `session/title` is registered
+    // by the session-title package, which this plugin does not import.
+    const events: readonly { readonly type: string, readonly data: unknown }[] =
+      entry.runRoot.session.snapshotEvents()
+    const event = events.findLast(item => item.type === 'session/title')
+    const data = event?.data as { readonly title?: unknown } | undefined
+    return typeof data?.title === 'string' && data.title !== '' ? data.title : undefined
   }
 
   /**
@@ -616,10 +660,7 @@ export class AgentMultiController extends TypertRemoteService {
    */
   @Remote('dryRunNode')
   async dryRunNode(request: DryRunNodeRequest): Promise<DryRunNodeResult> {
-    const runRoot = await this.ctx.agentLoop.create(SessionId(randomUUID()), {
-      provider: this.config.runRootProvider,
-      model: this.config.runRootModel,
-    })
+    const runRoot = await this.createRunRoot(request.workspaceId)
     const controller = new AbortController()
     const journal = new RunJournal(this.ctx, runRoot.session)
     const deps: NodeExecutionDeps = {
@@ -633,6 +674,8 @@ export class AgentMultiController extends TypertRemoteService {
       nodeOf: new Map(),
       hitlChildren: new Set(),
     }
+    const mirror = { provider: this.config.runRootProvider, model: this.config.runRootModel }
+    const mirrorTurn = await openRunTurn(this.ctx, runRoot, request.input, true)
     try {
       const outcome = await executeAgentNode(deps, request.node, [])
       if (outcome.ok) {
@@ -644,22 +687,63 @@ export class AgentMultiController extends TypertRemoteService {
         const durationMs = events.length > 0
           ? ((events.at(-1)?.data as { durationMs?: number }).durationMs ?? 0)
           : 0
+        const output = textOfContent(outcome.output)
+        await closeRunTurn(this.ctx, runRoot, mirror, mirrorTurn, { outcome: 'completed', text: output })
         return {
           outcome: 'completed',
-          output: textOfContent(outcome.output),
+          output,
           durationMs,
           ...(usage !== undefined ? { usage } : {}),
         }
       }
+      await closeRunTurn(this.ctx, runRoot, mirror, mirrorTurn, { outcome: 'failed', message: outcome.message })
       return {
         outcome: 'failed',
         errorClass: outcome.errorClass,
         message: outcome.message,
         attempts: outcome.attempts,
       }
+    } catch (error: unknown) {
+      // Keep the mirrored turn balanced even when the executor throws.
+      await closeRunTurn(this.ctx, runRoot, mirror, mirrorTurn, {
+        outcome: 'failed',
+        message: error instanceof Error ? error.message : String(error),
+      })
+      throw error
     } finally {
       controller.abort()
     }
+  }
+
+  /**
+   * Create the dormant run-root agent and place its session like an ordinary
+   * chat session: the workspace path (or the `runRootCwd` config fallback)
+   * becomes the session cwd — which groups it under that workspace, keeps it
+   * listed after a cold start, and is inherited by every node activation —
+   * and the live session is attached to the workspace record. When neither
+   * exists the session keeps no cwd and stays a live-only entry.
+   * @param workspaceId - caller's workspace; absent for trigger-fired runs.
+   */
+  private async createRunRoot(workspaceId?: string): Promise<Agent> {
+    const registry = this.ctx.get('workspaceRegistry')
+    const workspace = workspaceId === undefined
+      ? undefined
+      : registry?.get(brandString<WorkspaceId>(workspaceId))
+    const cwd = workspace?.path ?? this.config.runRootCwd
+    const runRoot = await this.ctx.agentLoop.create(SessionId(randomUUID()), {
+      provider: this.config.runRootProvider,
+      model: this.config.runRootModel,
+    }, cwd === undefined ? {} : { cwd })
+    if (workspace !== undefined) {
+      await workspace.attachSession(runRoot.session.id)
+    } else if (cwd !== undefined && registry !== undefined) {
+      // Attach to the workspace owning this directory when one is registered;
+      // attachment validates the realpath match, mirroring ordinary sessions.
+      const canonical = await realpath(cwd)
+      const match = registry.list().find(candidate => candidate.path === canonical)
+      if (match !== undefined) await match.attachSession(runRoot.session.id)
+    }
+    return runRoot
   }
 
   /**
@@ -685,11 +769,15 @@ export class AgentMultiController extends TypertRemoteService {
       maxActive: this.config.maxActive,
       resume,
       runId,
+      chatMirror: { provider: this.config.runRootProvider, model: this.config.runRootModel },
       ...(tokenBudget !== undefined ? { tokenBudget } : {}),
     })
+    const previous = resume ? this.runs.get(runId) : undefined
     const entry: RunRecord = {
       runId, workflowId: definition.id, runRoot, controller, execution,
       lastInput: input, settled: false, result: undefined,
+      startedAt: previous?.startedAt ?? Date.now(),
+      nodeTotal: definition.nodes.filter(node => node.kind === 'agent').length,
     }
     this.runs.set(runId, entry)
     void execution.then(
@@ -708,7 +796,9 @@ export class AgentMultiController extends TypertRemoteService {
   /** Project a run record into the client view over its session journal and projection. */
   private viewOf(entry: RunRecord): RunView {
     const events = entry.runRoot.session.snapshotEvents()
-      .filter((event) => event.type.startsWith('agent-multi/'))
+      // node-message is a Chat-presentation mirror (rendered as labelled
+      // bubbles in the run session), not a technical journal entry.
+      .filter((event) => event.type.startsWith('agent-multi/') && event.type !== 'agent-multi/node-message')
       .map((event) => ({ type: event.type, data: event.data as AgentMultiJsonValue }))
     const result = entry.result
     const failure = result?.failure === undefined ? {} : { failure: { ...result.failure } }

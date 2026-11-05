@@ -129,10 +129,31 @@ describe('executeRun', () => {
     expect(promptB).toContain('alpha')
     expect(eventTypes(runRoot)).toEqual([
       'agent-multi/run-start',
-      'agent-multi/node-start', 'agent-multi/node-input', 'agent-multi/node-delta', 'agent-multi/node-end',
-      'agent-multi/node-start', 'agent-multi/node-input', 'agent-multi/node-delta', 'agent-multi/node-end',
+      'agent-multi/node-start', 'agent-multi/node-input', 'agent-multi/node-message',
+      'agent-multi/node-delta', 'agent-multi/node-end', 'agent-multi/node-message',
+      'agent-multi/node-start', 'agent-multi/node-input', 'agent-multi/node-message',
+      'agent-multi/node-delta', 'agent-multi/node-end', 'agent-multi/node-message',
       'agent-multi/run-end',
     ])
+  })
+
+  it('marks node children as subagent-origin sessions so the sidebar hides them', async () => {
+    const { ctx, runRoot } = await setup([textResponse('alpha'), textResponse('beta')])
+    const created: { id: string, header: Record<string, unknown> }[] = []
+    ctx.on('session/created', session => {
+      created.push({ id: session.id, header: session.header as unknown as Record<string, unknown> })
+    })
+    const result = await executeRun({
+      ctx, runRoot, definition: definition(linearDraft({ maxAttempts: 1, backoffMs: 0 }, { maxAttempts: 1, backoffMs: 0 })),
+      userInput: 'go', signal: new AbortController().signal,
+    })
+    expect(result.outcome).toBe('completed')
+    const children = created.filter(entry => entry.id !== runRoot.session.id)
+    expect(children.length).toBe(2)
+    for (const child of children) {
+      expect(child.header.origin).toBe('subagent')
+      expect(child.header.parentSession).toBe(runRoot.session.id)
+    }
   })
 
   it('pauses at a breakpoint on deterministic failure', async () => {

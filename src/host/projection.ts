@@ -159,6 +159,7 @@ export type AgentMultiEventType =
   | 'agent-multi/node-delta'
   | 'agent-multi/node-end'
   | 'agent-multi/node-error'
+  | 'agent-multi/node-message'
   | 'agent-multi/hitl-asked'
   | 'agent-multi/hitl-answered'
   | 'agent-multi/run-paused'

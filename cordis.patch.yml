@@ -19,3 +19,7 @@
         runRootModel: GLM-5.3-Flash
         maxActive: 8
         # tokenBudget: <run-wide billed-token fuse, unset by default>
+        # Working directory for trigger-fired runs (client-started runs carry
+        # the caller's workspace instead). When set to a registered workspace
+        # path, trigger runs group under that workspace in the sidebar.
+        runRootCwd: D:\work\deepseek-harness\scratch-plugin\dsh-agent-multi

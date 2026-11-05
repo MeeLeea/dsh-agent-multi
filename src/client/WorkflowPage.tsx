@@ -12,7 +12,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
 import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 import type {
   CancelRunResult, CreateWorkflowResult, DeleteWorkflowResult, DryRunNodeResult, GetRunResult,
-  GetWorkflowResult, ListRunsResult, ResumeRunResult, SaveWorkflowRequest, SaveWorkflowResult, StartRunResult,
+  GetWorkflowResult, ListRunsResult, ResumeRunResult, RunSummary, SaveWorkflowRequest, SaveWorkflowResult, StartRunResult,
   ValidateWorkflowResult, WorkflowDraft, WorkflowId, WorkflowSummary, AgentNodeSpec,
   ExportWorkflowResult, ImportWorkflowResult, WorkflowExportDocument, AgentLibraryEntry, AgentLibraryId,
   AgentLibrarySpec, CreateLibraryAgentResult, SaveLibraryAgentResult, CreateTriggerRequest, CreateTriggerResult,
@@ -20,8 +20,22 @@ import type {
   ModelCatalog,
 } from 'dsh-agent-multi/types'
 import { RunPanel, type RunTarget } from './RunPanel.tsx'
+import { StatusPage } from './StatusPage.tsx'
 import { WorkflowEditor, type EditorTarget } from './WorkflowEditor.tsx'
 import css from './WorkflowPage.module.css'
+
+/** One workspace row offered to the run launcher's workspace picker. */
+export interface WorkspaceOption {
+  readonly workspaceId: string
+  readonly path: string
+  readonly title?: string
+}
+
+/** Observable workspace-list face, compatible with `useSyncExternalStore`. */
+export interface WorkspaceListHandle {
+  readonly getSnapshot: () => { readonly phase: string, readonly items: readonly WorkspaceOption[] }
+  readonly subscribe: (listener: () => void) => () => void
+}
 
 /** Remote-backed actions injected into the panel. */
 export interface AgentMultiInjected {
@@ -31,12 +45,12 @@ export interface AgentMultiInjected {
   readonly getWorkflow: (request: { id: WorkflowId }) => Promise<RemoteResult<GetWorkflowResult>>
   readonly deleteWorkflow: (request: { id: WorkflowId }) => Promise<RemoteResult<DeleteWorkflowResult>>
   readonly validateWorkflow: (request: { draft: WorkflowDraft }) => Promise<RemoteResult<ValidateWorkflowResult>>
-  readonly startRun: (request: { workflowId: WorkflowId, input: string }) => Promise<RemoteResult<StartRunResult>>
+  readonly startRun: (request: { workflowId: WorkflowId, input: string, workspaceId?: string }) => Promise<RemoteResult<StartRunResult>>
   readonly resumeRun: (request: { runId: string }) => Promise<RemoteResult<ResumeRunResult>>
   readonly cancelRun: (request: { runId: string }) => Promise<RemoteResult<CancelRunResult>>
   readonly getRun: (request: { runId: string }) => Promise<RemoteResult<GetRunResult>>
   readonly listRuns: (request: { workflowId?: WorkflowId }) => Promise<RemoteResult<ListRunsResult>>
-  readonly dryRunNode: (request: { node: AgentNodeSpec, input: string }) => Promise<RemoteResult<DryRunNodeResult>>
+  readonly dryRunNode: (request: { node: AgentNodeSpec, input: string, workspaceId?: string }) => Promise<RemoteResult<DryRunNodeResult>>
   readonly exportWorkflow: (request: { id: WorkflowId }) => Promise<RemoteResult<ExportWorkflowResult>>
   readonly importWorkflow: (request: { document: WorkflowExportDocument, keepId?: boolean }) => Promise<RemoteResult<ImportWorkflowResult>>
   readonly listLibraryAgents: () => Promise<RemoteResult<readonly AgentLibraryEntry[]>>
@@ -48,6 +62,10 @@ export interface AgentMultiInjected {
   readonly deleteTrigger: (request: { id: string }) => Promise<RemoteResult<DeleteTriggerResult>>
   readonly listTriggers: (request: { workflowId?: WorkflowId }) => Promise<RemoteResult<ListTriggersResult>>
   readonly listModelCatalog: () => Promise<RemoteResult<ModelCatalog>>
+  /** Live workspace list backing the run launcher's workspace picker. */
+  readonly workspaces: WorkspaceListHandle
+  /** The workspace a run lands in when the picker stays on auto. */
+  readonly defaultWorkspaceId: () => string | undefined
 }
 
 /** Root-scoped panel props derived from the framework and injected actions. */
@@ -57,6 +75,7 @@ export type WorkflowPageProps = PropsRuntime<'main'>
 
 type View =
   | { readonly kind: 'list' }
+  | { readonly kind: 'status' }
   | { readonly kind: 'edit', readonly target: EditorTarget }
   | { readonly kind: 'run', readonly target: RunTarget }
 
@@ -85,12 +104,28 @@ function newDraft(name: string): WorkflowDraft {
  * @returns the panel contents.
  */
 export function WorkflowPage(props: WorkflowPageProps) {
-  const { createWorkflow, listWorkflows, deleteWorkflow, getWorkflow, exportWorkflow, importWorkflow, t } = props
+  const { createWorkflow, listWorkflows, deleteWorkflow, getWorkflow, exportWorkflow, importWorkflow, listRuns, t } = props
   const [view, setView] = useState<View>({ kind: 'list' })
   const [workflows, setWorkflows] = useState<readonly WorkflowSummary[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [importText, setImportText] = useState<string | null>(null)
   const [keepId, setKeepId] = useState(false)
+  const [activeRuns, setActiveRuns] = useState<readonly RunSummary[]>([])
+
+  // Poll the cross-workflow run index while the list is visible; the strip
+  // below surfaces every still-running run with its live progress.
+  useEffect(() => {
+    if (view.kind !== 'list') return
+    let cancelled = false
+    const poll = async (): Promise<void> => {
+      const result = await listRuns({})
+      if (cancelled) return
+      if (result.ok) setActiveRuns(result.value.runs.filter(run => run.status === 'running'))
+    }
+    void poll()
+    const timer = setInterval(() => { void poll() }, 2000)
+    return () => { cancelled = true; clearInterval(timer) }
+  }, [view.kind, listRuns])
 
   useEffect(() => {
     let cancelled = false
@@ -175,21 +210,62 @@ export function WorkflowPage(props: WorkflowPageProps) {
     return <RunPanel target={view.target} actions={props} onExit={() => setView({ kind: 'list' })} />
   }
 
+  const tabs = <span className={css.tabs}>
+    <button
+      type='button'
+      className={view.kind === 'list' ? css.tabActive : css.tab}
+      onClick={() => setView({ kind: 'list' })}
+    >{t('tabWorkflows')}</button>
+    <button
+      type='button'
+      className={view.kind === 'status' ? css.tabActive : css.tab}
+      onClick={() => setView({ kind: 'status' })}
+    >{t('tabStatus')}</button>
+  </span>
+
+  if (view.kind === 'status') {
+    return <section className={css.page}>
+      <header className={css.header}>{tabs}</header>
+      <StatusPage actions={props} />
+    </section>
+  }
+
   function refresh(): Promise<void> {
     return listWorkflows().then(result => {
       if (result.ok) setWorkflows([...result.value].sort((a, b) => a.name.localeCompare(b.name)))
     })
   }
 
+  const activeCounts = new Map<string, number>()
+  for (const run of activeRuns) activeCounts.set(run.workflowId, (activeCounts.get(run.workflowId) ?? 0) + 1)
+
   return <section className={css.page}>
     <header className={css.header}>
-      <h2 className={css.title}>{t('listTitle')}</h2>
-      <Button onClick={() => { setImportText(importText === null ? '' : null) }}>{t('importAction')}</Button>
+      {tabs}
+      <Button onClick={() => { setImportText(importText === null ? '' : null) }}>{t('importWorkflowAction')}</Button>
       <Button variant='primary' onClick={() => { void onCreate() }}>
         <IconPlusOutlineRegular size={14} />{t('create')}
       </Button>
     </header>
     {error !== null && <p className={css.error}>{error}</p>}
+    {activeRuns.length > 0 && <div className={css.activeStrip}>
+      <span className={css.activeStripTitle}>{t('activeRunsTitle')}</span>
+      {activeRuns.map(run => {
+        const workflow = workflows?.find(entry => entry.id === run.workflowId)
+        const name = workflow?.name ?? run.workflowId
+        return <button key={run.runId} type='button' className={css.activeChip}
+          onClick={() => setView({ kind: 'run', target: { workflowId: run.workflowId, name, runId: run.runId } })}>
+          <span className={css.runDot} />
+          <span>{name}</span>
+          <span className={css.activeChipMeta}>{run.runId.slice(0, 8)}</span>
+          {run.progress !== undefined && <span className={css.activeChipMeta}>
+            {t('activeRunNodes')} {run.progress.completed + run.progress.failed}/{run.progress.total}
+          </span>}
+          <span className={css.activeChipMeta}>{formatElapsed(Date.now() - run.startedAt)}</span>
+          {run.hitlOpen === true && <span className={css.activeChipHitl}>{t('hitlOpen')}</span>}
+        </button>
+      })}
+    </div>}
     {importText !== null && <div className={css.importBox}>
       <span className={css.sectionTitle}>{t('importTitle')}</span>
       <textarea className={css.importText} rows={5} value={importText} placeholder={t('importHint')}
@@ -211,6 +287,9 @@ export function WorkflowPage(props: WorkflowPageProps) {
           {workflows.map(entry => <li key={entry.id} className={css.row}>
             <span className={css.rowName}>{entry.name}</span>
             <span className={css.rowMeta}>{t('revision')} {entry.revision}</span>
+            {activeCounts.has(entry.id) && <span className={css.rowRunning}>
+              <span className={css.runDot} />{activeCounts.get(entry.id)}
+            </span>}
             <span className={css.rowActions}>
               <Button onClick={() => { void openEditor(entry.id) }}>{t('open')}</Button>
               <Button onClick={() => setView({ kind: 'run', target: { workflowId: entry.id, name: entry.name } })}>{t('run')}</Button>
@@ -220,4 +299,15 @@ export function WorkflowPage(props: WorkflowPageProps) {
           </li>)}
         </ul>}
   </section>
+}
+
+/** Format a run duration as mm:ss, or h:mm:ss past the hour. */
+function formatElapsed(ms: number): string {
+  const seconds = Math.max(0, Math.floor(ms / 1000))
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const rest = seconds % 60
+  const mm = String(minutes).padStart(2, '0')
+  const ss = String(rest).padStart(2, '0')
+  return hours === 0 ? `${mm}:${ss}` : `${hours}:${mm}:${ss}`
 }

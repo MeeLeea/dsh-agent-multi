@@ -8,9 +8,14 @@ import type {} from 'dsh-agent-multi/remote'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-ui-sidebar/client'
+import type {} from '@deepseek-ai/dsh-api-session-controller/client'
+import type {} from '@deepseek-ai/dsh-api-workspace-controller/client'
+import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
+import type {} from '@deepseek-ai/dsh-client-ui-chat/client'
 import type { MainPanelId } from '@deepseek-ai/dsh-client-ui-layout/client'
 import type { TypertRemoteContribution } from '@deepseek-ai/dsh-typert-protocol'
 import { AgentMultiIcon } from './AgentMultiIcon.tsx'
+import { nodeMessageDefinition, NodeMessageView, NODE_MESSAGE_KIND } from './NodeMessageView.tsx'
 import { WorkflowPage, type AgentMultiInjected } from './WorkflowPage.tsx'
 import { NS, en, zh, type AgentMultiKey } from './locales.ts'
 
@@ -25,7 +30,49 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 }
 
 /** Services used by the agent-multi client UI. */
-export const inject = ['remote', 'slots', 'locale']
+export const inject = ['remote', 'slots', 'locale', 'workspaces', 'sessions', 'uiConversation']
+
+/**
+ * Resolve the workspace a run should live in: the most recently active
+ * workspace, using the same recency rule as the workspace sidebar (latest
+ * member-session activity, falling back to the workspace creation time).
+ * @param ctx - browser services.
+ * @returns the workspace id, or undefined before either list is ready.
+ */
+function currentWorkspaceId(ctx: ClientContext): string | undefined {
+  const workspaces = ctx.workspaces.list.getSnapshot()
+  const sessions = ctx.sessions.list.getSnapshot()
+  if (workspaces.phase !== 'ready' || sessions.phase !== 'ready') return undefined
+  let selected: string | undefined
+  let selectedAt = -Infinity
+  for (const item of workspaces.items) {
+    let latest = -Infinity
+    for (const sessionId of item.sessionIds) {
+      const summary = sessions.byId[sessionId]
+      if (summary !== undefined) latest = Math.max(latest, summary.updatedAt)
+    }
+    if (latest === -Infinity) latest = Date.parse(item.createdAt)
+    if (selected === undefined || latest > selectedAt) {
+      selected = item.workspaceId
+      selectedAt = latest
+    }
+  }
+  return selected
+}
+
+/**
+ * Stamp a run request with the caller's workspace so the host can place the
+ * run session under it; an explicit `workspaceId` chosen in the UI always
+ * wins, otherwise the request is stamped with the most recently active
+ * workspace once both lists are ready.
+ * @param ctx - browser services.
+ * @param request - the remote request to stamp.
+ */
+function withWorkspace<T extends { workspaceId?: string }>(ctx: ClientContext, request: T): T {
+  if (request.workspaceId !== undefined) return request
+  const workspaceId = currentWorkspaceId(ctx)
+  return workspaceId === undefined ? request : { ...request, workspaceId }
+}
 
 /**
  * Bind the workflow actions to the client-module apply context.
@@ -49,12 +96,12 @@ function bindActions(ctx: ClientContext): AgentMultiInjected {
     getWorkflow: request => ns.getWorkflow(request),
     deleteWorkflow: request => ns.deleteWorkflow(request),
     validateWorkflow: request => ns.validateWorkflow(request),
-    startRun: request => ns.startRun(request),
+    startRun: request => ns.startRun(withWorkspace(ctx, request)),
     resumeRun: request => ns.resumeRun(request),
     cancelRun: request => ns.cancelRun(request),
     getRun: request => ns.getRun(request),
     listRuns: request => ns.listRuns(request),
-    dryRunNode: request => ns.dryRunNode(request),
+    dryRunNode: request => ns.dryRunNode(withWorkspace(ctx, request)),
     exportWorkflow: request => ns.exportWorkflow(request),
     importWorkflow: request => ns.importWorkflow(request),
     listLibraryAgents: () => ns.listLibraryAgents(),
@@ -66,6 +113,11 @@ function bindActions(ctx: ClientContext): AgentMultiInjected {
     deleteTrigger: request => ns.deleteTrigger(request),
     listTriggers: request => ns.listTriggers(request),
     listModelCatalog: () => ns.listModelCatalog(),
+    workspaces: {
+      getSnapshot: () => ctx.workspaces.list.getSnapshot(),
+      subscribe: listener => ctx.workspaces.list.subscribe?.(listener) ?? (() => {}),
+    },
+    defaultWorkspaceId: () => currentWorkspaceId(ctx),
   }
 }
 
@@ -99,6 +151,15 @@ export async function mount(ctx: ClientContext, contribution: TypertRemoteContri
 function registerUi(ctx: ClientContext, actions: AgentMultiInjected): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'client-ui-agent-multi: dictionaries')
   const t = ctx.locale.bind(NS)
+  ctx.effect(
+    () => ctx.uiConversation.events.register(nodeMessageDefinition),
+    'client-ui-agent-multi: node-message conversation definition',
+  )
+  ctx.slots.inject('conversation.chat.node', () => ctx.slots.register({
+    name: 'conversation.chat.node',
+    key: NODE_MESSAGE_KIND,
+    locale: NS,
+  }, NodeMessageView))
   ctx.slots.inject('main', () => ctx.slots.register({
     name: 'main',
     key: PANEL_ID,

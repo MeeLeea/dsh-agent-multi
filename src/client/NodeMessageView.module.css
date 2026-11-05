@@ -1,0 +1,55 @@
+/* Group-chat mirror rows for node subagent utterances inside the run session. */
+
+.rowInput,
+.rowOutput {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 10px 0;
+  max-width: 92%;
+}
+
+.rowOutput {
+  margin-left: auto;
+  align-items: flex-end;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 2px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--dsw-alias-label-secondary, #8a8a8a);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 320px;
+}
+
+.bubble {
+  border: 1px solid var(--dsw-alias-border-l2, #e3e3e3);
+  border-radius: 10px;
+  background: var(--dsw-alias-bg-base, #fff);
+  padding: 8px 12px;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.rowOutput .bubble {
+  border-color: rgba(46, 158, 91, 0.35);
+  background: rgba(46, 158, 91, 0.05);
+}
+
+.text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--dsw-alias-label-primary, #1f1f1f);
+  white-space: pre-wrap;
+  word-break: break-word;
+}

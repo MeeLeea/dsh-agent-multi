@@ -151,11 +151,16 @@ export async function executeAgentNode(
   const started = Date.now()
   const attempt = 1
   const promptBlocks = assembleAgentPrompt(node, inEdges, deps.ledger, deps.userInput)
+  const promptText = textOf(promptBlocks)
   await deps.journal.append('agent-multi/node-start', {
     version: 1, runId: deps.runId, nodeId: node.id, nodeKind: node.kind, attempt,
   })
   await deps.journal.append('agent-multi/node-input', {
-    version: 1, runId: deps.runId, nodeId: node.id, attempt, prompt: textOf(promptBlocks),
+    version: 1, runId: deps.runId, nodeId: node.id, attempt, prompt: promptText,
+  })
+  await deps.journal.append('agent-multi/node-message', {
+    version: 1, runId: deps.runId, nodeId: node.id, nodeLabel: node.name || node.id,
+    role: 'input', text: promptText,
   })
   if (deps.signal.aborted) {
     return { ok: false, errorClass: 'transient', message: 'run cancelled before attempt', attempts: 0 }
@@ -229,6 +234,10 @@ export async function executeAgentNode(
         output: text, payload: text, stopReason: 'completed', durationMs: Date.now() - started,
         ...(nodeUsage !== undefined ? { usage: nodeUsage } : {}),
       })
+      await deps.journal.append('agent-multi/node-message', {
+        version: 1, runId: deps.runId, nodeId: node.id, nodeLabel: node.name || node.id,
+        role: 'output', text,
+      })
       return { ok: true, output: result.output }
     }
     const classification = classifyStopReason(result, false)
@@ -240,6 +249,10 @@ export async function executeAgentNode(
       version: 1, runId: deps.runId, nodeId: node.id, attempt,
       errorClass: classification, message, attempts: attempt,
     })
+    await deps.journal.append('agent-multi/node-message', {
+      version: 1, runId: deps.runId, nodeId: node.id, nodeLabel: node.name || node.id,
+      role: 'output', text: message,
+    })
     return { ok: false, errorClass: classification, message, attempts: attempt }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
@@ -247,6 +260,10 @@ export async function executeAgentNode(
     await deps.journal.append('agent-multi/node-error', {
       version: 1, runId: deps.runId, nodeId: node.id, attempt,
       errorClass, message, attempts: attempt,
+    })
+    await deps.journal.append('agent-multi/node-message', {
+      version: 1, runId: deps.runId, nodeId: node.id, nodeLabel: node.name || node.id,
+      role: 'output', text: message,
     })
     return { ok: false, errorClass, message, attempts: attempt }
   } finally {

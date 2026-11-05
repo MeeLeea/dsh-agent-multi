@@ -127,5 +127,4 @@ vitest 单测（`*.spec.ts`，直接 import `../src/host/*.ts`；`npm test` = �
 | `docs/plan.md` | 早期设计/规划文档 |
 | `node_modules/` | npm 依赖（React、zod、@xyflow/react、vitest、@deepseek-ai/* 0.2.1-rc.4 等） |
 | `.npm-cache/` | 本地 npm 缓存（离线/加速重装） |
-| `.typert-probe/` | 开发期 typert 探针工作区残留（现行构建 staging 为 `.typert-work/`），已忽略不跟踪 |
 | `.git/` | 独立 git 仓库 |

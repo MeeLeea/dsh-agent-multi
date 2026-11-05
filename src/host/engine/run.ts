@@ -12,6 +12,7 @@ import { brandString } from '@deepseek-ai/dsh-brand'
 import type { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import { executeAgentNode, RunJournal, type NodeExecutionFailure } from './executor.ts'
+import { closeRunTurn, openRunTurn, type ChatMirrorIdentity } from './chat-mirror.ts'
 import type { AgentMultiErrorClass, NodeUsagePayload, RunId } from './events.ts'
 import { installHitlTool } from './hitl.ts'
 import { Scheduler } from './scheduler.ts'
@@ -45,6 +46,13 @@ export interface ExecuteRunOptions {
    * with the `auth`-free deterministic class `token-fuse`.
    */
   readonly tokenBudget?: number
+  /**
+   * Chat mirroring: when present, the run lifecycle is also projected onto
+   * the run session as ordinary conversation events (turn boundaries plus the
+   * input echo and a terminal assistant message), so the session lists and
+   * reads like a regular chat session. Absent disables mirroring.
+   */
+  readonly chatMirror?: ChatMirrorIdentity
 }
 
 /** Drive one workflow run to a terminal outcome. */
@@ -63,6 +71,15 @@ export async function executeRun(options: ExecuteRunOptions): Promise<RunResult>
   })
   if (options.resume === true) {
     await journal.append('agent-multi/run-resumed', { version: 1, runId, mode: 'resume' })
+  }
+  // A resumed run already echoed its input on the first launch; only open a
+  // fresh mirrored turn for the continuation.
+  const mirrorTurn = options.chatMirror === undefined
+    ? undefined
+    : await openRunTurn(ctx, runRoot, userInput, options.resume !== true)
+  const closeMirror = async (close: Parameters<typeof closeRunTurn>[4]): Promise<void> => {
+    if (mirrorTurn === undefined || options.chatMirror === undefined) return
+    await closeRunTurn(ctx, runRoot, options.chatMirror, mirrorTurn, close)
   }
   const startedAt = Date.now()
   const inFlight = new Map<string, Promise<void>>()
@@ -126,12 +143,14 @@ export async function executeRun(options: ExecuteRunOptions): Promise<RunResult>
     await journal.append('agent-multi/run-end', {
       version: 1, runId, outcome: 'failed', totalDurationMs: Date.now() - startedAt,
     })
+    const message = `token budget exceeded: ${fuse.consumed()} billed input+output tokens over a limit of ${fuse.budget()}`
+    await closeMirror({ outcome: 'failed', message })
     return {
       outcome: 'failed', runId,
       failure: {
         nodeId: failureNodeId ?? '(run)',
         errorClass: 'deterministic',
-        message: `token budget exceeded: ${fuse.consumed()} billed input+output tokens over a limit of ${fuse.budget()}`,
+        message,
         attempts: 1,
       },
     }
@@ -141,6 +160,7 @@ export async function executeRun(options: ExecuteRunOptions): Promise<RunResult>
     await journal.append('agent-multi/run-end', {
       version: 1, runId, outcome: 'cancelled', totalDurationMs: Date.now() - startedAt,
     })
+    await closeMirror({ outcome: 'cancelled' })
     return { outcome: 'cancelled', runId }
   }
   if (failure !== undefined && failureNodeId !== undefined) {
@@ -150,15 +170,17 @@ export async function executeRun(options: ExecuteRunOptions): Promise<RunResult>
     await journal.append('agent-multi/run-end', {
       version: 1, runId, outcome: 'failed', totalDurationMs: Date.now() - startedAt,
     })
+    await closeMirror({ outcome: 'failed', message: failure.message })
     return {
       outcome: 'failed', runId,
       failure: { nodeId: failureNodeId, errorClass: failure.errorClass, message: failure.message, attempts: failure.attempts },
     }
   }
+  const output = scheduler.getOutput()
   await journal.append('agent-multi/run-end', {
     version: 1, runId, outcome: 'completed', totalDurationMs: Date.now() - startedAt,
   })
-  const output = scheduler.getOutput()
+  await closeMirror({ outcome: 'completed', text: output ?? '(no output)' })
   if (output === undefined) return { outcome: 'completed', runId }
   return { outcome: 'completed', runId, output }
 }
