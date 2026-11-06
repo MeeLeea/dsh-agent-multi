@@ -52,9 +52,11 @@ While any run is live, the workflow list shows an **activity strip** under the h
 
 The panel header carries two tabs: **Workflows** (the list, with *New workflow* and *Import workflow*) and **Status**. The status page tracks every run known to the host: the left column lists each run with its workflow name and run-session title — a green dot while it runs, a yellow dot once settled — and the right side renders the selected run's workflow graph on a read-only canvas, ringing the currently running node in pulsing green, completed nodes in green, failed nodes in red, and a node waiting on a human answer in amber.
 
+Each agent node has an **Allow subagent delegation** toggle (default on). Turning it off denies the node's agent the host's session-minting tools for the duration of that node's activation — `subagent`, `subagent_fork`, `task_board_run`, `squads_run_squad`, `squads_run_member`, and `workflow`, whichever the host actually exposes. The node then does its own work instead of delegating through the host task board or squads, which keeps those delegated sessions out of your sidebar and the workflow graph the single source of parallelism. Node-scoped registrations (like the HITL ask tool) are unaffected, and library agents carry the setting along.
+
 ## What you get
 
-- **Workflow editor**: React Flow canvas with 7 node kinds (agent / input / output / router / join / loop / loop-end), per-edge middle representation (`json` / `md` / `text`) and templates, inline node inspector (name, model, prompts, permission preset, HITL toggle; tool filter, context budget, retry and timeout inherit host defaults), CAS-safe saves.
+- **Workflow editor**: React Flow canvas with 7 node kinds (agent / input / output / router / join / loop / loop-end), per-edge middle representation (`json` / `md` / `text`) and templates, inline node inspector (name, model, prompts, permission preset, HITL toggle, subagent-delegation toggle; context budget, retry and timeout inherit host defaults), CAS-safe saves.
 - **Runs**: journaled on the run-root session; per-node status, attempts, durations, token usage on the kanban; failure view with resume (journal replay skips completed nodes); HITL questions relayed through the standard question UI; single-node dry run; run history.
 - **Agent library**: reusable agent specs insertable as nodes.
 - **Triggers**: cron / daily / weekly schedules stored in the plugin's own storage domain; fires start a run and re-arm.

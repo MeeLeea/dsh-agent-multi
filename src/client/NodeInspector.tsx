@@ -167,6 +167,11 @@ function AgentFields(props: {
       <input type='checkbox' checked={spec.hitlEnabled}
         onChange={event => { onChange({ ...spec, hitlEnabled: event.target.checked }) }} />
     </label>
+    <label className={css.field}>
+      <span className={css.fieldLabel}>{t('nodeAllowSubagents')}</span>
+      <input type='checkbox' checked={spec.allowSubagents ?? true}
+        onChange={event => { onChange({ ...spec, allowSubagents: event.target.checked }) }} />
+    </label>
   </>
 }
 
@@ -318,12 +323,13 @@ function DryRunSection(props: {
 
 /** Library-copy spec from an agent node spec, dropping canvas-local fields. */
 function librarySpecOf(spec: AgentNodeSpec): AgentLibrarySpec {
-  const { kind, systemPrompt, model, permissionPreset } = spec
+  const { kind, systemPrompt, model, permissionPreset, allowSubagents } = spec
   return {
     kind, systemPrompt,
     hitlEnabled: spec.hitlEnabled ?? false,
     ...(model === undefined ? {} : { model }),
     ...(permissionPreset === undefined ? {} : { permissionPreset }),
+    ...(allowSubagents === undefined ? {} : { allowSubagents }),
   }
 }
 

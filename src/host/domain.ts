@@ -72,6 +72,7 @@ const agentNodeSchema = nodeBaseSchema.extend({
   model: z.string().min(1).optional(),
   permissionPreset: z.enum(['read-only', 'workspace-write', 'danger-full-access']).optional(),
   hitlEnabled: z.boolean(),
+  allowSubagents: z.boolean().optional(),
 }).strict()
 
 const nodeSchema = z.discriminatedUnion('kind', [
@@ -206,6 +207,8 @@ export interface AgentLibrarySpec {
   readonly model?: string
   readonly permissionPreset?: 'read-only' | 'workspace-write' | 'danger-full-access'
   readonly hitlEnabled: boolean
+  /** Absent means allowed (the pre-option behavior); `false` denies the host's delegation tools. */
+  readonly allowSubagents?: boolean
 }
 
 /** One durable library-agent record; the table key is the agent id. */

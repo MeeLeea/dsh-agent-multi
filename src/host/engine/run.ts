@@ -15,6 +15,7 @@ import { executeAgentNode, RunJournal, type NodeExecutionFailure } from './execu
 import { closeRunTurn, openRunTurn, type ChatMirrorIdentity } from './chat-mirror.ts'
 import type { AgentMultiErrorClass, NodeUsagePayload, RunId } from './events.ts'
 import { installHitlTool } from './hitl.ts'
+import type { AgentProfileReader } from './profile.ts'
 import { Scheduler } from './scheduler.ts'
 import type { WorkflowDefinition } from '../types.ts'
 
@@ -53,6 +54,11 @@ export interface ExecuteRunOptions {
    * reads like a regular chat session. Absent disables mirroring.
    */
   readonly chatMirror?: ChatMirrorIdentity
+  /**
+   * Agent attribute profiles from `.agents.json`; absent uses the
+   * plugin-root file reader. Injection exists for tests and host overrides.
+   */
+  readonly profiles?: AgentProfileReader
 }
 
 /** Drive one workflow run to a terminal outcome. */
@@ -101,6 +107,7 @@ export async function executeRun(options: ExecuteRunOptions): Promise<RunResult>
         ledger: scheduler.ledgerSnapshot(),
         userInput, signal, nodeOf, hitlChildren,
         ...(fuse.consume !== undefined ? { onNodeUsage: fuse.consume } : {}),
+        ...(options.profiles !== undefined ? { profiles: options.profiles } : {}),
       },
       node,
       inEdges,

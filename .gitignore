@@ -26,11 +26,13 @@ coverage/
 .typert-work/
 .typert-probe/
 .drafts/
+.agents/
 
 # OS metadata
 .DS_Store
 Thumbs.db
 desktop.ini
+.agents.json
 
 # Editor and tool state
 .idea/

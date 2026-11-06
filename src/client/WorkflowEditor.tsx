@@ -10,7 +10,7 @@ import {
   type Connection, type Edge, type EdgeMouseHandler, type Node, type NodeMouseHandler, type NodeProps,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { Button, IconChevronLeftOutlineRegular, IconPlayOutlineRegular } from '@deepseek-ai/dsh-client-ui-primitives'
+import { Button, IconChevronLeftOutlineRegular, IconPlayOutlineRegular, IconTrashOutlineRegular } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
 import type {
@@ -117,7 +117,7 @@ export function WorkflowEditor(props: {
   readonly onRun: (workflowId: WorkflowId, name: string) => void
 }) {
   const { target, actions, onExit, onRun } = props
-  const { saveWorkflow, validateWorkflow, listLibraryAgents, listModelCatalog, t } = actions
+  const { saveWorkflow, validateWorkflow, listLibraryAgents, deleteLibraryAgent, listModelCatalog, t } = actions
   const initial = useMemo(() => toFlow(target.definition), [target.definition])
   const [nodes, setNodes, onNodesChange] = useNodesState<AgentMultiFlowNode>(initial.nodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initial.edges)
@@ -211,6 +211,14 @@ export function WorkflowEditor(props: {
     markDirty()
   }, [nodes.length, setNodes, markDirty])
 
+  /** Delete a library entry after confirmation; inserted canvas nodes keep their spec copies. */
+  const onLibraryDelete = useCallback(async (entry: AgentLibraryEntry) => {
+    if (!window.confirm(t('libraryDeleteConfirm'))) return
+    const result = await deleteLibraryAgent({ id: entry.id })
+    // 'missing' is equally final server-side: drop the row either way.
+    if (result.ok) setLibrary(current => current.filter(candidate => candidate.id !== entry.id))
+  }, [deleteLibraryAgent, t])
+
   const updateSpec = useCallback((id: string, next: NodeSpec) => {
     setNodes(current => current.map(node => node.id === id ? { ...node, data: { spec: next } } : node))
     markDirty()
@@ -293,9 +301,20 @@ export function WorkflowEditor(props: {
         {library.length > 0 && <>
           <span className={css.paletteTitle}>{t('libraryTitle')}</span>
           {library.map(entry => (
-            <Button key={entry.id} onClick={() => insertLibraryAgent(entry)}>
-              <span className={css.paletteGlyph}>{kindGlyph('agent')}</span>{entry.name}
-            </Button>
+            <div key={entry.id} className={css.libraryRow}>
+              <Button className={css.libraryInsert} title={t('libraryInsert')} onClick={() => insertLibraryAgent(entry)}>
+                <span className={css.paletteGlyph}>{kindGlyph('agent')}</span>
+                <span className={css.libraryName}>{entry.name}</span>
+              </Button>
+              <Button
+                className={css.libraryDelete}
+                variant='ghost'
+                size='sm'
+                title={t('libraryRemove')}
+                aria-label={t('libraryRemove')}
+                onClick={() => { void onLibraryDelete(entry) }}
+              ><IconTrashOutlineRegular size={14} /></Button>
+            </div>
           ))}
         </>}
       </div>
@@ -403,13 +422,15 @@ function libraryNodeFields(spec: AgentLibrarySpec): {
   kind: 'agent', systemPrompt: string,
   model?: string,
   permissionPreset?: 'read-only' | 'workspace-write' | 'danger-full-access', hitlEnabled?: boolean,
+  allowSubagents?: boolean,
 } {
-  const { kind, systemPrompt, model, permissionPreset, hitlEnabled } = spec
+  const { kind, systemPrompt, model, permissionPreset, hitlEnabled, allowSubagents } = spec
   return {
     kind,
     systemPrompt,
     ...(model === undefined ? {} : { model }),
     ...(permissionPreset === undefined ? {} : { permissionPreset }),
     ...(hitlEnabled === undefined ? {} : { hitlEnabled }),
+    ...(allowSubagents === undefined ? {} : { allowSubagents }),
   }
 }

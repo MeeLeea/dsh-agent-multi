@@ -508,8 +508,8 @@
 .libraryRow {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
+  gap: 4px;
+  padding: 2px;
   border: 1px solid var(--dsw-alias-border-l1);
   border-radius: 6px;
   font-size: 13px;
@@ -517,4 +517,18 @@
 
 .libraryName {
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.libraryInsert {
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-start;
+}
+
+.libraryDelete {
+  flex: none;
+  color: var(--dsw-alias-label-secondary);
 }

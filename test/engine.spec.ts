@@ -19,8 +19,19 @@ import UserQuestionService from '@deepseek-ai/dsh-user-questions'
 import { MockAdapter, maxTokensResponse, textResponse, toolCallResponse } from './helpers/mock-adapter.ts'
 import { mountWorkingDirectoryFixture } from './helpers/working-directory-fixture.ts'
 import { brandString } from '@deepseek-ai/dsh-brand'
+import { defineTool } from '@deepseek-ai/dsh-tools'
+import type { InferValue } from '@deepseek-ai/dsh-tools'
 import { executeRun } from '../src/host/engine/run.ts'
 import type { WorkflowDefinition, WorkflowDraft, WorkflowId } from '../src/host/types.ts'
+
+/** Output schema for the stand-in delegation tool. */
+const DELEGATION_VALUE_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    summary: { type: 'string', required: true },
+  },
+} as const
 
 const contexts: Context[] = []
 const roots: string[] = []
@@ -241,6 +252,45 @@ describe('executeRun', () => {
     })
     expect(result.outcome).toBe('completed')
     expect(adapter.requests[0]!.tools?.map(tool => tool.name) ?? []).not.toContain('agent-multi-ask-user')
+  })
+
+  it('denies delegation tools to nodes with allowSubagents disabled', async () => {
+    const { ctx, runRoot, adapter } = await setup([textResponse('alpha'), textResponse('beta')])
+    // A stand-in for the host's global session-minting tools.
+    ctx.tools.register(defineTool({
+      name: 'subagent',
+      description: 'Delegate a task to a fresh subagent session.',
+      parameters: {
+        prompt: { type: 'string', required: true, description: 'The task prompt.' },
+      },
+      output: {
+        schema: DELEGATION_VALUE_SCHEMA,
+        render: (_args: unknown, value: InferValue<typeof DELEGATION_VALUE_SCHEMA>) =>
+          [{ type: 'text', text: JSON.stringify(value) }],
+      },
+      async execute() { return { summary: 'delegated' } },
+    }))
+    const result = await executeRun({
+      ctx, runRoot,
+      definition: definition({
+        name: 'no-subagents',
+        nodes: [
+          { kind: 'input', id: 'in', name: 'in' },
+          { ...agent('A'), allowSubagents: false },
+          agent('B'),
+          { kind: 'output', id: 'out', name: 'out' },
+        ],
+        edges: [edge('in', 'A'), edge('A', 'B'), edge('B', 'out')],
+      }),
+      userInput: 'go', signal: new AbortController().signal,
+    })
+    expect(result.outcome).toBe('completed')
+    expect(result.output).toBe('beta')
+    expect(adapter.requests.length).toBe(2)
+    // Node A opted out: its scoped layer denies the delegation tool.
+    expect(adapter.requests[0]!.tools?.map(tool => tool.name) ?? []).not.toContain('subagent')
+    // Node B keeps the default: delegation stays available.
+    expect(adapter.requests[1]!.tools?.map(tool => tool.name) ?? []).toContain('subagent')
   })
 
   it('cancels an in-flight run via the abort signal', async () => {
